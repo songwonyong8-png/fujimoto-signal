@@ -1,0 +1,31 @@
+name: Compare A B C backtests
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install 'yfinance>=0.2.65,<2' 'pandas>=2.2,<3' 'numpy>=1.26,<3'
+      - name: Run fixed-rule backtests
+        run: python backtest.py
+      - name: Upload report files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backtest-reports
+          path: reports/
+          if-no-files-found: warn
+      - name: Publish result reports
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add reports/
+          git diff --cached --quiet || (git commit -m 'Add A B C backtest reports' && git push)
