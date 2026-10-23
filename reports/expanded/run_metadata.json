@@ -1,0 +1,9 @@
+{
+  "asof": "2026-10-22",
+  "strategy_version": "original-backtest.py-fixed-2026-10-23",
+  "requested": 15,
+  "downloaded": 15,
+  "failed_symbols": [],
+  "success": true,
+  "notes": "No strategy tuning; exploratory 2026 is not untouched holdout"
+}

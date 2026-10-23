@@ -1,0 +1,16 @@
+﻿symbol,name,bars,first,last,benchmark,source
+DRAM,DRAM ETF,141,2026-04-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+005930.KS,삼성전자,1666,2020-01-02,2026-10-22,069500.KS,Yahoo Finance/yfinance auto_adjust=False
+000660.KS,SK하이닉스,1666,2020-01-02,2026-10-22,069500.KS,Yahoo Finance/yfinance auto_adjust=False
+MU,마이크론,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+NVDA,엔비디아,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+AMD,AMD,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+INTC,인텔,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+AVGO,브로드컴,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+SOXX,SOXX,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+SMH,SMH,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+MSFT,마이크로소프트,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+AMZN,아마존,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+QQQ,QQQ,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+SPY,SPY,1711,2020-01-02,2026-10-22,SPY,Yahoo Finance/yfinance auto_adjust=False
+069500.KS,KODEX 200,1644,2020-01-02,2026-10-22,069500.KS,Yahoo Finance/yfinance auto_adjust=False
