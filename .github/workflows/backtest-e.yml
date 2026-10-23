@@ -1,0 +1,41 @@
+name: E fixed-entry exit comparison
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fujimoto-e-matched-entries
+  cancel-in-progress: false
+
+jobs:
+  paired-exits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: python -m pip install 'yfinance>=0.2.65,<2' 'pandas>=2.2,<3' 'numpy>=1.26,<3'
+      - name: Test fixed-entry and cash timing logic
+        run: python -m unittest test_backtest_e.py -v
+      - name: Run E same-entry 10 20 40 research
+        run: python backtest_e.py
+      - name: Upload E research outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e-paired-exit-results
+          path: reports/paired_exits/
+          if-no-files-found: warn
+      - name: Publish research report
+        if: success()
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add reports/paired_exits/
+          git diff --cached --quiet || (git commit -m 'Add fixed-entry E exit comparison results' && git push)
