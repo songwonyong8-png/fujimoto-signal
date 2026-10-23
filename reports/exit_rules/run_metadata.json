@@ -1,0 +1,10 @@
+{
+  "asof": "2026-10-22",
+  "strategy": "A signals with D0-D4 exit models",
+  "requested": 15,
+  "downloaded": 15,
+  "failed_symbols": [],
+  "coverage_ok": true,
+  "D0_A_assertions": "passed",
+  "status": "success"
+}
