@@ -1,0 +1,12 @@
+{
+  "asof": "2026-10-22",
+  "status": "success",
+  "study": "fixed A-entry paired 10/20/40 exits, common 40-session lockout",
+  "requested": 15,
+  "downloaded_and_analyzed": 15,
+  "failed": [],
+  "required_missing": [],
+  "paired_cohorts_across_phases": 490,
+  "same_entry_assertions": "passed",
+  "fees_per_side": 0.001
+}
