@@ -1,0 +1,11 @@
+ticker,date,score,rsi,distance,broken,A,B,C
+Samsung Electronics,2026-10-08,34.0,47.48550842164598,-1.75307021655573,False,False,False,False
+Samsung Electronics,2026-10-12,59.0,41.68919422909353,-5.729607677109794,False,False,False,False
+Samsung Electronics,2026-10-13,39.0,34.412064379257615,-12.071252605647143,True,False,False,False
+Samsung Electronics,2026-10-14,59.0,34.4120644198145,-11.45038167938931,False,False,False,False
+Samsung Electronics,2026-10-15,27.0,27.735005622478923,-19.082939986513825,True,False,False,False
+Samsung Electronics,2026-10-16,54.0,31.322675984893976,-16.424277680822186,False,False,False,False
+Samsung Electronics,2026-10-19,69.0,32.952091297862765,-14.95172144738125,False,True,True,False
+Samsung Electronics,2026-10-20,61.0,30.89938725137671,-16.805978955649525,False,False,False,False
+Samsung Electronics,2026-10-21,82.0,38.514379694717256,-11.581445949955494,False,True,True,False
+Samsung Electronics,2026-10-22,54.0,35.36645020630368,-14.354162507486523,False,False,False,False

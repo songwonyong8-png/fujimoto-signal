@@ -1,0 +1,4 @@
+ticker,symbol,bars,first,last,source
+DRAM,DRAM,141,2026-04-02,2026-10-22,Yahoo Finance via yfinance; auto_adjust=False
+Samsung Electronics,005930.KS,1418,2021-01-04,2026-10-22,Yahoo Finance via yfinance; auto_adjust=False
+NVIDIA,NVDA,1458,2021-01-04,2026-10-22,Yahoo Finance via yfinance; auto_adjust=False
