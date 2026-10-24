@@ -380,6 +380,13 @@ def main():
             for phase,first,last in (list(base.PHASES)+[
                 ('year_2024',pd.Timestamp('2024-01-01'),pd.Timestamp('2024-12-31')),
                 ('year_2025',pd.Timestamp('2025-01-01'),pd.Timestamp('2025-12-31'))]):
+                # Newer securities (e.g. DRAM) may not have any sessions in
+                # historical validation/development phases. Skip such phases
+                # BEFORE running reference-parity audits: the old baselines
+                # correctly return None, not a comparable performance row.
+                available=np.flatnonzero((p.index>=first)&(p.index<=last))
+                if len(available)<2:
+                    continue
                 for cfg in all_configs():
                     row,tt,ff=run_config(p,sig,phase,first,last,symbol,cfg)
                     if row is not None:

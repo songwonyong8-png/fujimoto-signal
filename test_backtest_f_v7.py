@@ -244,6 +244,28 @@ class F7FactorialTests(unittest.TestCase):
         with mock.patch.object(f.v6,'FUNDAMENTAL_GATE','strict'):
             with self.assertRaises(RuntimeError):self.execute(p,s)
 
+    def test_recent_etf_with_no_2024_2025_prices_does_not_fail_audit(self):
+        # Regression for GitHub run 40073917479: DRAM first traded in 2026.
+        p,s=self.market(n=260)
+        p.index=pd.bdate_range('2026-01-02',periods=260)
+        s.index=p.index
+        self.entries(s)
+        with TemporaryDirectory() as tmp:
+            with mock.patch.object(f,'OUT',Path(tmp)),\
+                 mock.patch.object(f.base,'UNIVERSE',[('DRAM','DRAM','Unit','SPY')]),\
+                 mock.patch.object(f.base,'REQUIRED',{'DRAM'}),\
+                 mock.patch.object(f.v3,'top50_candidates',return_value=([],[])),\
+                 mock.patch.object(f.base,'fetch_prices',return_value=p),\
+                 mock.patch.object(f.v6,'indicators',return_value=s),\
+                 mock.patch.object(f.base,'PHASES',[
+                     ('validation_2024_2025',pd.Timestamp('2024-01-01'),pd.Timestamp('2025-12-31')),
+                     ('exploratory_2026',p.index[0],p.index[-1])]):
+                f.main()
+            data=__import__('json').loads((Path(tmp)/'run_metadata.json').read_text())
+            self.assertEqual(data['status'],'success')
+            self.assertEqual(data['downloaded'],1)
+            self.assertFalse(data['failures'])
+
     def test_synthetic_end_to_end_report_generation(self):
         p,s=self.market(n=260);self.entries(s)
         s.loc[s.index[111],'rsi_failure']=True
