@@ -1,0 +1,68 @@
+
+name: F v7 Factorial Ablation and Robustness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - backtest_f_v7.py
+      - test_backtest_f_v7.py
+      - .github/workflows/backtest-f-v7.yml
+      - backtest_f_v3.py
+      - backtest_f_v4.py
+      - backtest_f_v5.py
+      - backtest_f_v6.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: f-v7-factorial-study
+  cancel-in-progress: false
+
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      F6_FUNDAMENTAL_GATE: 'off'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: python -m pip install 'yfinance>=0.2.65,<2' 'pandas>=2.2,<3' 'numpy>=1.26,<3'
+
+      - name: Regression tests F3 through F7
+        run: python -m unittest test_backtest_f_v3 test_backtest_f_v4 test_backtest_f_v5 test_backtest_f_v6 test_backtest_f_v7 -v
+
+      - name: Execute F7 factorial ablation and matched cohorts
+        run: python backtest_f_v7.py
+
+      - name: Upload results, including partial files on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f-v7-factorial-results
+          path: reports/f_signal_ablation_v7/
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Commit successful results
+        if: success()
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add reports/f_signal_ablation_v7/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add F7 factorial ablation and robust comparison'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
