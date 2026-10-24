@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "price_asof": "2026-10-22",
+  "ranking_method": "frozen Nasdaq-100 market-cap top50 securities as observed 2026-10-24 (not historical membership)",
+  "ranking_source": "https://www.slickcharts.com/nasdaq100/marketcap",
+  "ranking_snapshot_date": "2026-10-24",
+  "requested": 58,
+  "downloaded": 57,
+  "failed": [
+    {
+      "symbol": "SPCX",
+      "error": "Only 92 valid daily bars; at least 120 expected"
+    }
+  ]
+}
