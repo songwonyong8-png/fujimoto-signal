@@ -1,0 +1,29 @@
+{
+  "status": "success",
+  "data_asof": "2026-10-22",
+  "ranking_snapshot": "2026-10-24",
+  "requested": 58,
+  "downloaded": 57,
+  "failures": [
+    {
+      "symbol": "SPCX",
+      "error": "Only 92 valid daily bars; at least 120 expected"
+    }
+  ],
+  "article": "https://myrichlife.tistory.com/643",
+  "fundamental_mode": "off",
+  "fundamental_gate_applied": false,
+  "timeframe": "daily_only_5minute_not_tested",
+  "strategies": 6,
+  "paired_evaluation_bars": [
+    40,
+    80,
+    120
+  ],
+  "profit_sell_counts": {
+    "F6_breakout_cloud": 84,
+    "F6_trend_cloud": 84,
+    "F6_breakout_cloud_vp": 84,
+    "F6_trend_cloud_vp": 84
+  }
+}
