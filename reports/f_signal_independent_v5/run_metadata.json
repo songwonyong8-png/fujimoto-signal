@@ -1,0 +1,22 @@
+{
+  "status": "success",
+  "asof": "2026-10-22",
+  "universe_count": 58,
+  "downloaded": 57,
+  "failed": [
+    {
+      "symbol": "SPCX",
+      "error": "Only 92 valid daily bars; at least 120 expected"
+    }
+  ],
+  "pair_horizons": [
+    40,
+    80,
+    120
+  ],
+  "strategy_count": 8,
+  "selection_snapshot": "2026-10-24",
+  "entry_rules": "unchanged F v3",
+  "baseline": "unchanged F4 reversed exits",
+  "costs": "0.1 percent per side; no slippage"
+}
