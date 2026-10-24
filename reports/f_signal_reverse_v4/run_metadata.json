@@ -1,0 +1,16 @@
+{
+  "status": "success",
+  "price_data_cutoff": "2026-10-22",
+  "selected_as_of": "2026-10-24",
+  "universe_count": 58,
+  "fetched_count": 57,
+  "failures": [
+    {
+      "symbol": "SPCX",
+      "error": "Only 92 valid daily bars; at least 120 expected"
+    }
+  ],
+  "primary_rule": "reverse exit signals, not fixed-40-day hold",
+  "baseline_rule": "unchanged v3 fixed-40-day, DIFFERENT entry schedules",
+  "data_source": "yfinance via backtest_15.py; OHLCV as available"
+}
