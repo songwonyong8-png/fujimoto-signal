@@ -1,0 +1,28 @@
+{
+  "status": "success",
+  "data_asof": "2026-10-22",
+  "universe_requested": 58,
+  "downloaded": 57,
+  "failures": [
+    {
+      "symbol": "SPCX",
+      "error": "Only 92 valid daily bars; at least 120 expected"
+    }
+  ],
+  "audit_differences": [],
+  "configs": 24,
+  "paired_rows": 7416,
+  "historical_membership_point_in_time": false,
+  "sample_validation_untouched": false,
+  "standard_error_bootstrap_clusters": "symbols; market-wide correlations remain",
+  "fundamental_filter": "off",
+  "timeframe": "daily",
+  "fees": "0.10% on each buy and each sale; zero slippage assumed",
+  "paired_horizons": [
+    40,
+    80,
+    120
+  ],
+  "bootstrap_iterations": 2000,
+  "bootstrap_seed": 20261024
+}
