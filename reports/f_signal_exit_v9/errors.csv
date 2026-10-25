@@ -1,0 +1,4 @@
+﻿market,symbol,error
+NASDAQ100,SPCX,Only 92 valid daily bars; at least 120 expected
+NASDAQ100,WBD,Yahoo Finance returned no OHLCV rows
+NASDAQ100,HONA,Only 91 valid daily bars; at least 120 expected
