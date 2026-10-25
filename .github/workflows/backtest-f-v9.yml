@@ -1,0 +1,65 @@
+
+name: F v9 KOSPI100 Nasdaq100 Exit Timing Study
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - backtest_f_v9.py
+      - test_backtest_f_v9.py
+      - universe_f9_snapshot.csv
+      - .github/workflows/backtest-f-v9.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: f-v9-kospi-nasdaq-exits
+  cancel-in-progress: false
+
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      F6_FUNDAMENTAL_GATE: 'off'
+
+    steps:
+      - name: Checkout frozen F9 sources
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        run: python -m pip install 'yfinance>=0.2.65,<2' 'pandas>=2.2,<3' 'numpy>=1.26,<3'
+
+      - name: Test F3 through F9 regression and invariant rules
+        run: python -m unittest test_backtest_f_v3.py test_backtest_f_v4.py test_backtest_f_v5.py test_backtest_f_v6.py test_backtest_f_v7.py test_backtest_f_v8.py test_backtest_f_v9.py -v
+
+      - name: Run F9 on frozen KOSPI100 and Nasdaq100 universe
+        run: python backtest_f_v9.py
+
+      - name: Upload all reports including partial failure reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f-v9-kospi-nasdaq-exit-results
+          path: reports/f_signal_exit_v9/
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Commit completed report
+        if: success()
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add reports/f_signal_exit_v9/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add F9 200-stock exit comparison report'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
