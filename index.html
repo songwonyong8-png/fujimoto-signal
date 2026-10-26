@@ -1,78 +1,88 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#08101e">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="매매신호등">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon.png">
-<title>Fujimoto Signal · F9-A</title>
-<style>
-:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;color:#f4f7fd;background:#07101c;--border:#293448;--surface:#111d30;--dim:#94a3b8;--mint:#4ade80;--gold:#facc15;--red:#fb7185}*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}.wrap{max-width:670px;margin:auto;padding:env(safe-area-inset-top) 16px calc(50px + env(safe-area-inset-bottom))}header{display:flex;align-items:start;justify-content:space-between;gap:14px;padding:21px 0 13px}h1{font-size:21px;line-height:1.2;margin:0 0 6px;letter-spacing:-.4px}h2{font-size:19px;margin:0 0 14px}h3{font-size:15px;margin:0 0 12px}p{line-height:1.62;margin:8px 0}small,.muted{color:var(--dim)}small{font-size:12px}.tiny{font-size:11px}.badge{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:99px;background:#172538;color:#cbd5e1;padding:7px 10px;font-size:11px;white-space:nowrap}.card{background:var(--surface);border:1px solid var(--border);border-radius:19px;padding:18px;margin:12px 0}.switcher{display:flex;gap:8px;overflow:auto;padding:10px 0 9px;scrollbar-width:none}.switcher button{min-width:80px;border:1px solid #33445d;background:#172338;color:#b8c7dc;border-radius:12px;padding:11px 15px;font-weight:700}.switcher button.active{background:#234ca4;border-color:#4481ec;color:white}.hero{background:linear-gradient(140deg,#142440,#101b30 75%)}.price{font-weight:800;font-size:33px;letter-spacing:-1.3px;margin:7px 0}.flex{display:flex;justify-content:space-between;gap:10px;align-items:center}.change{padding:7px 10px;font-size:12px;border-radius:10px;background:#1c2b44}.positive{color:#86efac}.negative{color:#fda4af}.lightline{display:flex;align-items:center;gap:11px;margin:23px 0 10px}.dot{height:20px;width:20px;border-radius:50%;background:#2a3548;opacity:.6;flex:none}.dot.on.buy{opacity:1;background:#22c55e;box-shadow:0 0 22px #22c55e66}.dot.on.wait{opacity:1;background:#facc15;box-shadow:0 0 22px #facc1566}.dot.on.sell{opacity:1;background:#fb7185;box-shadow:0 0 22px #fb718566}.headline{font-weight:780;font-size:22px;line-height:1.3;margin:10px 0}.desc{color:#becce0;font-size:13px;line-height:1.6}.callout{border-radius:12px;background:#1a2941;padding:11px 13px;margin-top:14px;font-size:12px;color:#b8cee9;line-height:1.6}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.metric{padding:12px;border:1px solid #283b54;border-radius:12px;background:#15243a;min-width:0}.metric .value{font-weight:750;font-size:19px;margin-top:6px;overflow-wrap:anywhere}.metric small{display:block}.stages{display:grid;gap:10px}.stage{display:grid;grid-template-columns:58px minmax(0,1fr);gap:13px;border:1px solid #2b3d58;border-radius:14px;padding:12px;background:#132238}.stage.ready{border-color:#428d69}.stage.armed{border-color:#b8a049}.stepnum{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:11px;background:#24344e;min-height:76px}.stepnum strong{font-size:27px}.stepnum span{font-size:11px;color:#b9c9df}.stepbody strong{display:block;font-size:14px;margin-bottom:3px}.stepstatus{font-size:12px;color:#a9bfda;margin-top:8px;line-height:1.5}.tag{color:#b6ceee;background:#213757;border:1px solid #36517b;border-radius:7px;display:inline-block;padding:3px 8px;font-size:11px;margin-top:4px}.tag.ok{border-color:#357b57;background:#153c33;color:#a7f3d0}.tag.caution{border-color:#7d562e;background:#46341c;color:#fde68a}.order{border-radius:12px;border:1px solid #4269a3;background:#122e4f;padding:13px;margin:9px 0}.order.sell{border-color:#8a4351;background:#3b202a}.order h3{margin:0 0 5px}.list{margin:0;padding-left:18px;line-height:1.8;color:#bdc9db;font-size:13px}.rule{padding:10px 0;border-bottom:1px solid #29384e;font-size:13px;display:flex;justify-content:space-between;gap:10px;align-items:center}.rule:last-child{border:0}.rule span:last-child{font-weight:650;text-align:right}.yes{color:#86efac}.no{color:#9eafc8}.note{font-size:12px;line-height:1.65;color:#a7b9d0}#chart{width:100%;height:190px;display:block}.button{background:#1a365e;border:1px solid #31517e;color:#ddeaff;padding:10px 13px;border-radius:10px;font-size:13px;font-weight:650}.button:focus-visible,.switcher button:focus-visible{outline:2px solid #7dd3fc}#sourceStatus{margin-top:8px}#csv{max-width:100%;font-size:12px;margin:8px 0 4px}footer{text-align:center;color:#788ba6;font-size:12px;padding:22px 6px;line-height:1.7}a{color:#93c5fd;text-underline-offset:3px}.hidden{display:none!important}@media(max-width:390px){.stage{grid-template-columns:48px minmax(0,1fr)}.stepnum strong{font-size:24px}.wrap{padding-left:12px;padding-right:12px}.card{padding:15px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="F9 매매신호등">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon.png">
+  <title>F9-A 매매신호등 · 200종목</title>
+  <style>
+    :root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","SF Pro Display",sans-serif;background:#07111d;color:#e9eff9;--bg:#07111d;--panel:#111f30;--panel2:#17293c;--line:#2a394a;--dim:#93a5b8;--green:#5ee0ad;--red:#ff8294;--yellow:#f0c777;--blue:#84afff}
+    *{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}input,select{background:#101d2b;color:#fff;border:1px solid #415268;border-radius:11px;min-width:0}input:focus,select:focus{outline:2px solid #599cff;outline-offset:1px}a{color:var(--blue)}.shell{width:min(100%,760px);margin:auto;padding:0 16px calc(48px + env(safe-area-inset-bottom))}.mast{padding:calc(22px + env(safe-area-inset-top)) 0 15px;display:flex;align-items:start;justify-content:space-between;gap:12px}.eyebrow{font-size:10px;letter-spacing:.15em;font-weight:800;color:#7fc0fd}.mast h1{font-size:23px;letter-spacing:-.6px;margin:4px 0 6px}.sub{color:var(--dim);font-size:12px;line-height:1.5}.brand{display:flex;align-items:center;gap:12px}.brandmark{background:linear-gradient(150deg,#21556f,#123c51);width:44px;height:44px;display:grid;place-items:center;border-radius:14px;font-size:24px;box-shadow:inset 0 0 0 1px #4884a244}.outline{border:1px solid #344a61;background:#122234;color:#dbe8f6;border-radius:12px;padding:9px 12px;font-size:12px;font-weight:750}.status-line{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:12px 14px;border-radius:12px;background:#0d1b2a;border:1px solid #203248;margin-bottom:14px;font-size:12px;color:var(--dim)}.status-line strong{color:#d6e7f9}.status-line .dot{width:7px;height:7px;background:var(--green);border-radius:50%;display:inline-block;margin-right:6px}.status-line .dot.warn{background:var(--yellow)}.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.tile{background:linear-gradient(160deg,#13243a,#111c2d);border:1px solid #223a52;border-radius:14px;padding:14px 10px;min-width:0}.tile span{font-size:11px;color:var(--dim);display:block}.tile b{font-size:25px;font-variant-numeric:tabular-nums;display:block;margin-top:8px}.tile.buy b{color:var(--green)}.tile.sell b{color:var(--red)}.holdings-pnl{border:1px solid #243c50;border-radius:16px;background:#101e2f;padding:14px 16px;margin-bottom:17px;display:none}.holdings-pnl.visible{display:block}.holdings-pnl .pnlheader{font-size:12px;color:#99abc2;margin-bottom:10px}.holdings-pnl .pnlgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pnlgrid small{color:var(--dim);font-size:10px}.pnlgrid strong{display:block;margin:5px 0 3px;font-size:17px}.toolbar{position:sticky;top:0;background:linear-gradient(180deg,#07111d 95%,#07111df0);z-index:5;padding:8px 0 12px}.sectionhead{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:4px 0 12px}.sectionhead h2{font-size:18px;margin:0}.sectionhead small{font-size:11px;color:var(--dim)}.search{display:flex;align-items:center;gap:9px;background:#112134;border:1px solid #354a61;border-radius:14px;padding:12px 13px}.search input{border:0;background:transparent;outline:none;font-size:14px;width:100%;color:#fff}.search input::placeholder{color:#8296aa}.tabs,.marketnav{display:flex;align-items:center;gap:7px;overflow-x:auto;scrollbar-width:none;padding-top:11px}.tabs button,.marketnav button{border:1px solid #273d55;border-radius:10px;color:#b1c1d3;background:#111f30;white-space:nowrap;font-size:12px;padding:10px 12px;font-weight:700}.tabs button.selected{background:#20577a;border-color:#3988b1;color:#e6f8ff}.marketnav{padding-top:8px}.marketnav button{border:0;padding:6px 10px;background:transparent;color:#91a4b9}.marketnav button.selected{color:#fff;background:#22354b}.listhead{display:flex;justify-content:space-between;align-items:center;margin:12px 1px 8px;font-size:12px;color:var(--dim)}.list{display:flex;flex-direction:column;gap:8px}.stock{border:1px solid #263d52;border-radius:16px;background:#101d2d;padding:14px 13px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center;transition:background .15s}.stock:active{background:#1b2d42}.stock .symbol{font-size:11px;color:#7f9ab5;margin:5px 0 0}.stock .name{font-size:15px;font-weight:750;letter-spacing:-.25px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stock .secondary{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.4}.stock .right{text-align:right}.stock .price{font-size:15px;font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}.stock .change{font-size:11px;font-weight:700;margin:4px 0 6px}.chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #32465d;background:#1a2b3c;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:800;white-space:nowrap}.chip.buy{background:#133e35;border-color:#27755b;color:#83f5c7}.chip.sell{background:#4b2334;border-color:#945064;color:#ffc2ca}.chip.hold{background:#1e3354;border-color:#385780;color:#a5caff}.chip.neutral{color:#b3c0cf}.chip.warn{color:#ffe3a0;background:#443827;border-color:#766047}.stock .tagline{margin-top:5px;font-size:11px;color:#a9bad0;line-height:1.3}.empty{padding:36px 16px;background:#111f30;border-radius:16px;text-align:center;color:#a4b4ca;font-size:13px;line-height:1.7}.footer{color:#7d91a4;font-size:11px;line-height:1.8;margin-top:22px;border-top:1px solid #233549;padding-top:17px}.linkbtn{border:0;background:transparent;color:#a7cbff;text-decoration:underline;padding:3px 0;cursor:pointer}.hidden{display:none!important}
+    dialog{border:1px solid #3a5167;border-radius:22px;color:#eef5ff;background:#111d2d;box-shadow:0 25px 90px #000b;width:min(calc(100% - 20px),550px);max-height:min(90dvh,820px);padding:0;overflow:auto}dialog::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(3px)}.dialog-head{position:sticky;top:0;background:#121f30;z-index:2;padding:17px 18px;border-bottom:1px solid #26394f;display:flex;justify-content:space-between;align-items:center}.dialog-head h2{font-size:18px;margin:0}.xbtn{border:1px solid #2e475e;background:#1c2d42;border-radius:9px;color:#fff;width:34px;height:34px;font-size:20px}.dialogbody{padding:17px 18px 23px}.dialogbody h3{font-size:14px;margin:15px 0 10px}.hint{font-size:11px;color:#aabace;line-height:1.6}.pairgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.pairgrid .box{background:#18283a;border-radius:11px;padding:12px}.pairgrid small{display:block;font-size:11px;color:#9baec2}.pairgrid b{display:block;margin-top:7px;font-size:16px}.rules{padding:13px;border-radius:12px;background:#1a2a3c;font-size:12px;line-height:1.8;color:#d6e2ef}.rules .active-buy{color:#8af4c7}.rules .active-sell{color:#ffb9c3}.divider{border:0;border-top:1px solid #2a3d51;margin:18px 0}.field{display:block;margin-bottom:11px}.field span{display:block;color:#d6e2ef;font-size:12px;margin-bottom:7px}.field input,.field select{width:100%;padding:12px;font-size:15px}.stage-list{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.stage-list label{display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;background:#203148;border:1px solid #385069;border-radius:10px;padding:11px 5px}.stage-list input{width:16px;height:16px;accent-color:#57baeb}.buttons{display:flex;gap:8px;margin-top:13px}.primary{background:#287fb0;border:1px solid #379bce;color:#fff;border-radius:11px;padding:12px 14px;font-size:13px;font-weight:800}.secondarybtn{background:#203449;border:1px solid #39516c;color:#dceafa;border-radius:11px;padding:12px 14px;font-size:13px;font-weight:750}.dangerbtn{background:#472b34;border:1px solid #6e4351;color:#ffbac8;border-radius:11px;padding:12px 14px;font-size:13px;font-weight:750}.tiny-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.tiny-actions button{flex:1}.navi{display:flex;justify-content:space-between;align-items:center;padding:8px 0}.toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(90%,460px);text-align:center;background:#234b65;color:white;border:1px solid #468db1;padding:12px;border-radius:13px;z-index:20;font-size:12px;box-shadow:0 10px 30px #000b}.chart{width:100%;height:118px;display:block;background:#132437;border-radius:10px;margin-top:10px}
+    @media(min-width:680px){.stock{padding:17px}.list{display:grid;grid-template-columns:1fr 1fr}.toolbar{padding-bottom:15px}}
+    @media(max-width:370px){.overview{gap:5px}.tile{padding:12px 7px}.tile b{font-size:21px}.tabs button{padding:9px 10px}.stock .name{font-size:14px}}
+  </style>
 </head>
 <body>
-<main class="wrap">
-<header>
-  <div><h1>🚦 Fujimoto Signal</h1><small>F9-A · 1:2:6 단계별 매매 신호</small></div>
-  <span class="badge" id="source">데이터 확인 중</span>
-</header>
-<nav aria-label="관심 종목 선택" class="switcher" id="symbols"></nav>
-<section class="card hero" aria-live="polite">
-  <div class="flex"><div><small id="ticker">DRAM</small><div class="price" id="price">—</div><small id="date">일봉 확인 중</small></div><span class="change" id="change">—</span></div>
-  <div class="lightline" aria-hidden="true"><span class="dot buy" id="green"></span><span class="dot wait" id="yellow"></span><span class="dot sell" id="red"></span><small id="modeLabel">가상 전략 상태</small></div>
-  <div class="headline" id="signal">데이터 불러오는 중</div>
-  <div class="desc" id="reason">종가 확정 신호를 확인합니다.</div>
-  <div class="callout" id="accountNote">실제 증권계좌와 연동되지 않습니다. 가상 전략 계좌 상태입니다.</div>
-</section>
-<section class="card">
-  <div class="flex"><h2>다음 거래일 주문 후보</h2><span class="badge">오늘 종가 확정 후</span></div>
-  <div id="orders" class="desc">—</div>
-  <div class="note">표시된 주문은 전략의 조건 충족 안내이며 실제 주문이나 체결이 아닙니다. 다음 거래일 시가로 체결 여부를 판단합니다.</div>
-</section>
-<section class="card">
-  <h2>1:2:6 단계별 가상 보유 현황</h2>
-  <div class="stages" id="stages"></div>
-  <p class="note" id="campaignNote"></p>
-</section>
-<section class="card">
-  <h2>오늘의 지표</h2>
-  <div class="grid2" id="metrics"></div>
-  <h3 style="margin-top:18px">오늘 종가 기준 조건 확인</h3>
-  <div id="checklist"></div>
-  <p class="note">1차 RSI(14) → 2차 MACD(12·26·9) → 3차 일목균형표(9·26·52) 엄격 돌파. 신호 간격은 최대 20거래일입니다.</p>
-</section>
-<section class="card">
-  <h2>최근 종가 추이</h2><svg id="chart" viewBox="0 0 600 190" preserveAspectRatio="none" role="img" aria-label="최근 종가 추이"></svg>
-  <small id="chartinfo">—</small>
-</section>
-<section class="card">
-  <h2>최근 가상 체결 기록</h2><div id="fills" class="desc">—</div>
-  <p class="note">가상 체결은 과거 일봉의 다음 거래일 시가로 재현했습니다. 실제 보유 수량·평균단가·세금과는 무관합니다.</p>
-</section>
-<section class="card">
-  <h2>매도 규칙 · F9 채택안</h2>
-  <div class="rule"><span>1차 1/9 매도</span><span>RSI 30 이하</span></div>
-  <div class="rule"><span>2차 2/9 매도</span><span>MACD 데드크로스</span></div>
-  <div class="rule"><span>3차 6/9 매도 <span class="tag ok">A형 적용</span></span><span>구름대 하단 종가 이탈</span></div>
-  <p class="note">B형(구름대 상단 이탈), C형(상단 2일 연속 이탈)은 F9 비교 실험용이며 이 페이지의 매매 판정에는 사용하지 않습니다.</p>
-  <p class="note"><a href="https://github.com/songwonyong8-png/fujimoto-signal/blob/main/reports/f_signal_exit_v9/report.md" target="_blank" rel="noopener noreferrer">F9 백테스트 근거 보기</a></p>
-</section>
-<section class="card">
-  <h2>데이터 및 새로 고침</h2>
-  <p class="note">시세는 GitHub Actions로 갱신하고 전략 신호는 같은 저장소의 Python F9 엔진으로 계산합니다. 홈 화면의 표시는 매매 추천 또는 자동 주문이 아닙니다.</p>
-  <div class="flex"><button class="button" id="refresh" type="button">최신 데이터 확인</button><small id="updated">—</small></div>
-  <div id="sourceStatus" class="note"></div>
-  <details style="margin-top:17px"><summary class="note">CSV 수동 업로드 (시세 미리보기 전용)</summary>
-    <p class="note">헤더: Date,Open,High,Low,Close,Volume. CSV는 차트·가격만 표시합니다. F9 신호는 Python 백테스트 엔진으로 검증한 자동 데이터에서만 표시합니다.</p>
-    <label class="note" for="csv">선택 종목 CSV</label><input id="csv" type="file" accept=".csv,text/csv">
-    <button class="button" id="reset" type="button">자동 데이터 복원</button>
-    <p class="note" id="csvStatus"></p>
-  </details>
-</section>
-<footer>연구용 매매신호등 · 실제 보유계좌 아님 · 실시간 체결·알림 아님<br>종가 기준 판단 / 다음 거래일 시가 주문 후보 / 비용·미끄러짐·세금 및 환율 변동에 유의</footer>
+<main class="shell">
+  <header class="mast">
+    <div class="brand"><div class="brandmark" aria-hidden="true">↗</div><div><span class="eyebrow">FUJIMOTO · F9-A</span><h1>내 매매신호등</h1><div class="sub">코스피100 · 나스닥100 · DRAM ETF<br>미보유는 매수 · 보유는 매도 신호</div></div></div>
+    <button id="backupButton" class="outline" type="button" aria-label="보유내역 백업 및 복원">백업·복원</button>
+  </header>
+  <div class="status-line" aria-live="polite"><span><span id="freshDot" class="dot warn"></span><strong id="scanStatus">201종목 데이터 확인 중</strong></span><span id="scanDate">—</span></div>
+  <section class="overview" aria-label="종목 요약">
+    <div class="tile"><span>전체 종목</span><b id="totalCount">201</b></div>
+    <div class="tile"><span>내 보유</span><b id="heldCount">0</b></div>
+    <div class="tile buy"><span>매수 후보</span><b id="buyCount">0</b></div>
+    <div class="tile sell"><span>매도 후보</span><b id="sellCount">0</b></div>
+  </section>
+  <section id="portfolioPnl" class="holdings-pnl" aria-label="내 포트폴리오 평가손익"><div class="pnlheader">내 포트폴리오 · 평균매수가 기준 평가손익</div><div class="pnlgrid"><div><small>한국 주식 · KRW</small><strong id="krwPnl">—</strong><span class="sub" id="krwBasis">—</span></div><div><small>미국 주식 · USD</small><strong id="usdPnl">—</strong><span class="sub" id="usdBasis">—</span></div></div></section>
+  <section class="toolbar" aria-label="종목 찾기 및 필터">
+    <div class="sectionhead"><h2>전체 종목</h2><small id="visibleCount">200개 표시</small></div>
+    <label class="search"><span aria-hidden="true">⌕</span><input type="search" id="search" placeholder="종목명 또는 티커 검색" autocomplete="off" aria-label="종목명 또는 티커 검색"></label>
+    <div class="tabs" role="group" aria-label="보유 여부 및 신호 필터">
+      <button type="button" class="selected" data-filter="all" aria-pressed="true">전체</button>
+      <button type="button" data-filter="unheld" aria-pressed="false">미보유</button>
+      <button type="button" data-filter="held" aria-pressed="false">내 보유</button>
+      <button type="button" data-filter="buy" aria-pressed="false">매수 후보</button>
+      <button type="button" data-filter="sell" aria-pressed="false">매도 후보</button>
+    </div>
+    <div class="marketnav" role="group" aria-label="시장 필터">
+      <button type="button" class="selected" data-market="all" aria-pressed="true">전체 시장</button>
+      <button type="button" data-market="KOSPI" aria-pressed="false">코스피 100</button>
+      <button type="button" data-market="NASDAQ100" aria-pressed="false">나스닥 100</button>
+      <button type="button" data-market="ETF" aria-pressed="false">관심 ETF</button>
+    </div>
+  </section>
+  <div class="listhead"><span>종목을 누르면 보유 수량과 평균단가를 입력할 수 있습니다.</span><span id="missingHint">—</span></div>
+  <section id="stockList" class="list" aria-label="코스피와 나스닥 상위 200개 종목 및 DRAM ETF 목록"></section>
+  <p class="footer">* F9-A: 1차 RSI(14) 반등 → 2차 MACD 골든크로스 → 3차 일목균형표 엄격 상승 돌파. 1:2:6 비중. 보유 단계별 매도는 RSI 30 이하 / MACD 데드크로스 / 일목 구름대 하단 종가 이탈(A형)입니다.<br>* 신호는 <b>확정 일봉 종가</b> 기준이며 실제 주문·체결이 아닙니다. 데이터 미갱신 종목은 신호를 보류합니다. 수수료, 환율, 세금은 평가손익에 포함되지 않습니다.<br>* 보유정보는 <b>이 아이폰 브라우저 내부에만 저장</b>되며 GitHub에 전송하지 않습니다. Safari와 홈 화면 앱은 저장공간이 분리될 수 있으니 백업 기능을 사용하세요.</p>
 </main>
-<script src="app.js?v=20261025-f9a" defer></script>
-</body></html>
+<dialog id="detailDialog" aria-label="종목 상세 및 보유 관리">
+  <div class="dialog-head"><h2 id="detailTitle">종목 상세</h2><button class="xbtn" type="button" id="closeDialog" aria-label="닫기">×</button></div>
+  <div class="dialogbody">
+    <div class="navi"><span class="chip neutral" id="detailMarket">—</span><span id="detailAsOf" class="sub">—</span></div>
+    <div class="pairgrid"><div class="box"><small>최근 종가</small><b id="detailPrice">—</b></div><div class="box"><small>내 평가손익</small><b id="detailPnl">미보유</b></div></div>
+    <svg id="detailChart" class="chart" viewBox="0 0 420 118" role="img" aria-label="최근 종가 흐름"></svg>
+    <h3>오늘의 F9-A 매매 판단</h3><div class="rules" id="detailRules">—</div>
+    <div class="pairgrid" style="margin-top:10px"><div class="box"><small>RSI (14)</small><b id="detailRsi">—</b></div><div class="box"><small>MACD / 시그널</small><b id="detailMacd" style="font-size:13px">—</b></div><div class="box"><small>구름대 상단</small><b id="detailCloudTop">—</b></div><div class="box"><small>구름대 하단</small><b id="detailCloudBottom">—</b></div></div>
+    <hr class="divider">
+    <h3>내 실제 보유정보 <span class="sub">(이 기기에만 저장)</span></h3>
+    <div class="buttons" id="editModes" role="group" aria-label="보유정보 입력 방식">
+      <button class="secondarybtn" type="button" data-mode="edit">직접 수정</button>
+      <button class="secondarybtn" type="button" data-mode="buy">매수 기록</button>
+      <button class="secondarybtn" type="button" data-mode="sell">매도 기록</button>
+    </div>
+    <form id="positionForm">
+      <section id="editFields"><label class="field"><span>보유 수량 (주)</span><input id="heldQty" type="number" step="any" min="0" inputmode="decimal" placeholder="예: 445"></label><label class="field"><span>평균 매수가 (<span class="currencyLabel">USD</span>)</span><input id="averageCost" type="number" step="any" min="0" inputmode="decimal" placeholder="예: 62.99"></label></section>
+      <section id="tradeFields" class="hidden"><label class="field"><span id="tradeQtyLabel">매매 수량 (주)</span><input id="tradeQty" type="number" step="any" min="0" inputmode="decimal" placeholder="예: 10"></label><label class="field"><span id="tradePriceLabel">체결 단가 (<span class="currencyLabel">USD</span>)</span><input id="tradePrice" type="number" step="any" min="0" inputmode="decimal" placeholder="예: 62.99"></label></section>
+      <h3>보유 물량이 해당하는 매수 단계</h3>
+      <div class="stage-list" role="group" aria-label="보유 단계 설정"><label><input type="checkbox" id="lot1" value="1">1차 · RSI</label><label><input type="checkbox" id="lot2" value="2">2차 · MACD</label><label><input type="checkbox" id="lot3" value="3">3차 · 일목</label></div>
+      <p class="hint">선택한 단계에 해당하는 매도 조건만 경고합니다. 복수 선택할 수 있습니다. 단계별 수량이 입력된 것은 아니므로 매도 수량은 직접 확인해야 합니다.</p>
+      <p class="hint" id="formInfo" aria-live="polite"></p>
+      <div class="buttons"><button class="primary" type="submit" id="saveHolding" style="flex:1">보유정보 저장</button><button class="dangerbtn" type="button" id="clearHolding">보유 삭제</button></div>
+    </form>
+  </div>
+</dialog>
+<dialog id="backupDialog" aria-label="보유정보 백업 및 복원">
+  <div class="dialog-head"><h2>보유정보 백업 · 복원</h2><button class="xbtn" type="button" id="closeBackup" aria-label="닫기">×</button></div>
+  <div class="dialogbody"><p class="hint">종목별 수량·평균단가·매수 단계를 이 아이폰의 로컬 저장소에 기록합니다. 휴대폰 교체나 Safari 데이터 삭제에 대비하여 백업 파일을 보관하세요. 서버·GitHub에는 보유정보가 저장되지 않습니다.</p><div class="buttons"><button class="primary" type="button" id="exportHoldings" style="flex:1">내 보유내역 파일로 백업</button></div><label class="field" style="margin-top:22px"><span>백업 파일 가져오기 (.json)</span><input type="file" id="importHoldings" accept=".json,application/json"></label><p class="hint">가져오기는 현재 기기의 기존 보유정보를 교체합니다. 가져오기 전에 먼저 백업해 두세요.</p><p id="backupInfo" class="hint" aria-live="polite"></p></div>
+</dialog>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script src="app.js?v=portfolio-v10"></script>
+</body>
+</html>
