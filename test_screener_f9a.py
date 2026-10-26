@@ -113,6 +113,72 @@ class F9ScreenerTests(TestCase):
             self.assertEqual(z['fresh_count'],0)
             self.assertFalse(any(any(row['signals'].values()) for row in z['stocks']))
 
+    def test_all_100_kospi_stocks_have_real_display_names(self):
+        rows=f.read_universe()
+        kr=[r for r in rows if r['market']=='KOSPI']
+        self.assertEqual(len(kr),100)
+        self.assertTrue(all(r['name']!=r['symbol'] for r in kr))
+        self.assertEqual(next(r['name'] for r in kr if r['symbol']=='0126Z0.KS'), '삼성에피스홀딩스')
+        self.assertEqual(next(r['name'] for r in kr if r['symbol']=='028260.KS'), '삼성물산')
+        self.assertEqual(next(r['name'] for r in kr if r['symbol']=='034220.KS'), 'LG디스플레이')
+
+    def test_volume_profile_poc_and_seventy_percent_value_area(self):
+        p=self.prices(120)
+        p['low']=99.;p['high']=101.;p['close']=100.
+        # Known HLC3 concentrations: 96 candles at 100, 24 at 110
+        p.loc[p.index[-24:],'low']=109.
+        p.loc[p.index[-24:],'high']=111.
+        p.loc[p.index[-24:],'close']=110.
+        x=f.volume_profile(p)
+        self.assertEqual(x['period_bars'],120)
+        self.assertEqual(len(x['histogram']),32)
+        self.assertGreaterEqual(x['actual_coverage'],.70)
+        self.assertLessEqual(x['actual_coverage'],1.)
+        self.assertTrue(x['val']<=x['poc']<=x['vah'])
+        self.assertLess(abs(x['poc']-100),1.)
+
+    def test_volume_profile_today_only_and_no_future_lookahead(self):
+        p=self.prices(150)
+        p['low']=97.;p['high']=103.;p['close']=100.
+        baseline=f.volume_profile(p)
+        altered=p.copy()
+        altered.iloc[0,altered.columns.get_loc('volume')]=1_000_000_000
+        # Older than most recent 120: must NOT influence volume profile.
+        self.assertEqual(baseline,f.volume_profile(altered))
+        altered=p.copy()
+        altered.iloc[-1,altered.columns.get_loc('volume')]=100_000_000
+        altered.iloc[-1,altered.columns.get_loc('high')]=180.
+        altered.iloc[-1,altered.columns.get_loc('low')]=160.
+        altered.iloc[-1,altered.columns.get_loc('close')]=170.
+        self.assertNotEqual(baseline['poc'],f.volume_profile(altered)['poc'])
+
+    def test_flat_price_profile_and_invalid_volume(self):
+        p=self.prices(120)
+        p['high']=100.;p['low']=100.;p['close']=100.
+        self.assertEqual(f.volume_profile(p)['poc'],100.)
+        p['volume']=0.
+        with self.assertRaisesRegex(ValueError,'positive volume'):
+            f.volume_profile(p)
+
+    def test_macd_chart_exact_parity_and_price_levels(self):
+        p=self.prices(150)
+        s=self.signals(p)
+        with mock.patch.object(f.v6,'indicators',return_value=s):
+            record=f.indicator_snapshot(p,self.meta())
+        self.assertEqual(len(record['macd_chart']['macd']),40)
+        self.assertEqual(len(record['macd_chart']['signal']),40)
+        self.assertEqual(len(record['macd_chart']['histogram']),40)
+        self.assertEqual(len(record['recent_closes']),120)
+        self.assertEqual(record['macd'],record['macd_chart']['macd'][-1])
+        self.assertEqual(record['macd_signal'],record['macd_chart']['signal'][-1])
+        self.assertGreaterEqual(record['volume_profile']['actual_coverage'],.7)
+        self.assertTrue(record['volume_profile']['val']<=record['volume_profile']['poc']<=record['volume_profile']['vah'])
+
+    def test_missing_data_never_has_fictitious_support_price(self):
+        result=f.empty_record(self.meta(),'No price history')
+        self.assertIsNone(result['volume_profile'])
+        self.assertIsNone(result['macd_chart'])
+
     def test_cannot_publish_future_dummy_trade(self):
         x=f.empty_record(self.meta())
         self.assertEqual(x['status'],'UNAVAILABLE')

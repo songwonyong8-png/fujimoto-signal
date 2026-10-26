@@ -6,6 +6,8 @@
 const SCREENER_PATH='data/screener_f9a.json';
 const STORAGE_KEY='fujimoto-user-holdings-v1';
 const DEFAULT_STOCKS=[];
+// Names are client-fallbacks until the next GitHub Actions price refresh.
+const KOREAN_NAMES={"005930.KS":"삼성전자","000660.KS":"SK하이닉스","005380.KS":"현대자동차","009150.KS":"삼성전기","373220.KS":"LG에너지솔루션","207940.KS":"삼성바이오로직스","105560.KS":"KB금융","012450.KS":"한화에어로스페이스","000270.KS":"기아","034020.KS":"두산에너빌리티","055550.KS":"신한지주","032830.KS":"삼성생명","068270.KS":"셀트리온","012330.KS":"현대모비스","006400.KS":"삼성SDI","066570.KS":"LG전자","035420.KS":"NAVER","010120.KS":"LS ELECTRIC","042660.KS":"한화오션","009540.KS":"HD한국조선해양","034730.KS":"SK","000810.KS":"삼성화재","005490.KS":"POSCO홀딩스","015760.KS":"한국전력","051910.KS":"LG화학","096770.KS":"SK이노베이션","033780.KS":"KT&G","035720.KS":"카카오","086790.KS":"하나금융지주","018260.KS":"삼성에스디에스","000150.KS":"두산","003550.KS":"LG","003670.KS":"포스코퓨처엠","259960.KS":"크래프톤","323410.KS":"카카오뱅크","005940.KS":"NH투자증권","005830.KS":"DB손해보험","003490.KS":"대한항공","028050.KS":"삼성E&A","024110.KS":"기업은행","039490.KS":"키움증권","316140.KS":"우리금융지주","000100.KS":"유한양행","047050.KS":"포스코인터내셔널","402340.KS":"SK스퀘어","329180.KS":"HD현대중공업","028260.KS":"삼성물산","267260.KS":"HD현대일렉트릭","298040.KS":"효성중공업","010130.KS":"고려아연","011200.KS":"HMM","138040.KS":"메리츠금융지주","042700.KS":"한미반도체","010140.KS":"삼성중공업","017670.KS":"SK텔레콤","079550.KS":"LIG넥스원","064350.KS":"현대로템","006800.KS":"미래에셋증권","267250.KS":"HD현대","010950.KS":"S-Oil","086280.KS":"현대글로비스","047810.KS":"한국항공우주","278470.KS":"에이피알","272210.KS":"한화시스템","011070.KS":"LG이노텍","030200.KS":"KT","000720.KS":"현대건설","307950.KS":"현대오토에버","071050.KS":"한국금융지주","0126Z0.KS":"삼성에피스홀딩스","003230.KS":"삼양식품","443060.KS":"HD현대마린솔루션","078930.KS":"GS","006260.KS":"LS","161390.KS":"한국타이어앤테크놀로지","090430.KS":"아모레퍼시픽","016360.KS":"삼성증권","180640.KS":"한진칼","352820.KS":"하이브","064400.KS":"LG씨엔에스","326030.KS":"SK바이오팜","047040.KS":"대우건설","267270.KS":"HD건설기계","007660.KS":"이수페타시스","021240.KS":"코웨이","032640.KS":"LG유플러스","241560.KS":"두산밥캣","377300.KS":"카카오페이","009830.KS":"한화솔루션","001440.KS":"대한전선","062040.KS":"산일전기","000880.KS":"한화","271560.KS":"오리온","353200.KS":"대덕전자","175330.KS":"JB금융지주","128940.KS":"한미약품","010060.KS":"OCI홀딩스","029780.KS":"삼성카드","034220.KS":"LG디스플레이","051900.KS":"LG생활건강"};
 const el=id=>document.getElementById(id);
 const safeText=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const fmt=(n,d=2)=>Number.isFinite(Number(n)) && n!=='' && n!==null ? Number(n).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
@@ -43,6 +45,7 @@ function render(){const held=universe.filter(s=>isHeld(s.symbol));const buys=uni
    el(id).style.color=group.pnl<0?'#ffabb7':group.pnl>0?'#7beabd':'';
    el(basisid).textContent=group.count?`투자원금 ${currency(group.basis,group.currency)} · 평가가능 ${group.valued}/${group.count}종목`:'등록 내역 없음';
  }
+ for(const s of universe){if(s.market==='KOSPI'&&KOREAN_NAMES[s.symbol])s.name=KOREAN_NAMES[s.symbol];}
  const rows=listView();el('visibleCount').textContent=`${rows.length}개 표시`;el('missingHint').textContent=`미확인 ${universe.filter(s=>stale(s)).length}종목`;
  const container=el('stockList');const fragment=document.createDocumentFragment();
  for(const s of rows){const d=decision(s),h=holdings[s.symbol],node=document.createElement('button');node.type='button';node.className='stock';node.dataset.symbol=s.symbol;
@@ -79,16 +82,140 @@ function showDetail(symbol){selected=universe.find(s=>s.symbol===symbol);if(!sel
   ...[1,2,3].filter(k=>h.stages.includes(k)).map(k=>`<div class="${triggers.includes(flags[k])?'active-sell':''}">${safeText(sellReason[flags[k]])}: ${triggers.includes(flags[k])?'● 매도 조건 충족':'— 아직 미충족'}</div>`));}
  }
  out.push('<div class="hint">종가 확정 이후 판단. 신호가 발생해도 아직 주문 또는 체결된 것은 아닙니다.</div>');rules.innerHTML=out.join('');
- el('detailRsi').textContent=fmt(s.rsi14,1);el('detailMacd').textContent=`${fmt(s.macd,3)} / ${fmt(s.macd_signal,3)}`;
+ el('detailRsi').textContent=fmt(s.rsi14,1);
+ renderMacdSummary(s);
  el('detailCloudTop').textContent=currency(s.cloud_top,s.currency);el('detailCloudBottom').textContent=currency(s.cloud_bottom,s.currency);
- drawChart(s.recent_closes||[]);
+ drawChart(s,h);
+ drawMacdChart(s);
  el('heldQty').value=h?h.qty:'';el('averageCost').value=h?h.avg:'';
  for(const n of [1,2,3])el('lot'+n).checked=h?h.stages.includes(n):n===1;
  document.querySelectorAll('.currencyLabel').forEach(x=>x.textContent=s.currency);
  el('tradeQty').value='';el('tradePrice').value='';el('clearHolding').disabled=!h;
  setMode(h?'edit':'buy');
  el('detailDialog').showModal();}
-function drawChart(values){const svg=el('detailChart');svg.replaceChildren();const a=values.map(Number).filter(Number.isFinite);if(a.length<2)return;const lo=Math.min(...a),hi=Math.max(...a),span=Math.max(1e-9,hi-lo);const line=document.createElementNS('http://www.w3.org/2000/svg','polyline');const points=a.map((n,i)=>`${(10+i/(a.length-1)*400).toFixed(1)},${(98-(n-lo)/span*75).toFixed(1)}`).join(' ');line.setAttribute('points',points);line.setAttribute('fill','none');line.setAttribute('stroke','#5ebee9');line.setAttribute('stroke-width','2.5');line.setAttribute('stroke-linecap','round');line.setAttribute('stroke-linejoin','round');svg.appendChild(line);}
+// SVG is created with DOM APIs; ticker names and downloaded text are never executed.
+const SVG_NS='http://www.w3.org/2000/svg';
+function svgAdd(parent,tag,attrs={},content){const node=document.createElementNS(SVG_NS,tag);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,String(value));if(content!==undefined)node.textContent=String(content);parent.appendChild(node);return node;}
+function safeLevel(v){return v!==null&&v!==undefined&&Number.isFinite(Number(v))&&Number(v)>0?Number(v):null;}
+function drawChart(s,holding){
+ const svg=el('detailChart');svg.replaceChildren();
+ const panel=el('profileLevels');panel.replaceChildren();
+ const interpretation=el('profileInterpretation');
+ const closes=(Array.isArray(s.recent_closes)?s.recent_closes:[]).map(Number).filter(v=>Number.isFinite(v)&&v>0);
+ const vp=s.volume_profile;
+ if(closes.length<2){interpretation.textContent='표시할 종가 데이터가 없습니다.';return;}
+ const labels=[{key:'vah',name:'VAH 상단',color:'#ff95a3'},
+               {key:'poc',name:'POC 최다',color:'#facc72'},
+               {key:'val',name:'VAL 하단',color:'#68dfa4'}];
+ const levels=vp?labels.map(x=>({...x,price:safeLevel(vp[x.key])})).filter(x=>x.price!==null):[];
+ const price=safeLevel(s.close)||closes.at(-1);
+ const extra=holding?safeLevel(holding.avg):null;
+ const all=[...closes,price,...levels.map(x=>x.price),...(extra!==null?[extra]:[])];
+ const rawMin=Math.min(...all),rawMax=Math.max(...all);
+ const padding=Math.max((rawMax-rawMin)*0.09,rawMax*0.006,0.0001);
+ const min=rawMin-padding,max=rawMax+padding,scale=v=>205-(v-min)/(max-min)*183;
+ const n=closes.length;
+ const xOf=i=>12+i/Math.max(n-1,1)*277;
+ // Actual 70% value-area region behind price movement.
+ if(vp&&safeLevel(vp.val)!==null&&safeLevel(vp.vah)!==null){
+   const top=scale(Number(vp.vah)),bottom=scale(Number(vp.val));
+   svgAdd(svg,'rect',{x:9,y:Math.min(top,bottom),width:327,height:Math.max(1,Math.abs(bottom-top)),fill:'#facc72','fill-opacity':'0.055'});
+ }
+ for(let i=0;i<4;i++){const y=26+i*56;svgAdd(svg,'line',{x1:10,y1:y,x2:337,y2:y,stroke:'#23364a','stroke-width':1});}
+ // Volume histogram on the same price axis. Width = relative concentration.
+ if(vp&&Array.isArray(vp.histogram)&&vp.histogram.length===32){
+   const start=Number(vp.range_low),end=Number(vp.range_high);
+   vp.histogram.forEach((weight,i)=>{if(!Number.isFinite(Number(weight))||Number(weight)<=0)return;
+     const level=start+(end-start)*(i+0.5)/32;
+     const yy=scale(level);const width=32*Math.max(0,Math.min(1,Number(weight)));
+     svgAdd(svg,'rect',{x:336-width,y:yy-1.65,width:width.toFixed(2),height:3.3,
+       fill:Math.abs(level-Number(vp.poc))<=Math.max(Number(vp.width)/2,1e-9)?'#facc72':'#7e9bae','fill-opacity':'0.60'});
+   });
+ }
+ const points=closes.map((v,i)=>`${xOf(i).toFixed(1)},${scale(v).toFixed(1)}`).join(' ');
+ svgAdd(svg,'polyline',{points,stroke:'#66bffd','stroke-width':2.5,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'});
+ const annotations=[...levels,{key:'close',name:'현재',price,color:'#eef8ff'}];
+ if(extra!==null)annotations.push({key:'avg',name:'평단',price:extra,color:'#7df0d5'});
+ annotations.forEach(p=>svgAdd(svg,'line',{x1:10,y1:scale(p.price),x2:337,y2:scale(p.price),stroke:p.color,'stroke-width':p.key==='poc'?2:1.2,'stroke-dasharray':p.key==='close'?'3 4':'6 5','stroke-opacity':p.key==='close'?'0.9':'0.8'}));
+ // Avoid text collisions: put floating price labels in separate right gutter.
+ const sorted=annotations.map(p=>({...p,actualY:scale(p.price),labelY:scale(p.price)})).sort((a,b)=>a.actualY-b.actualY);
+ for(let i=1;i<sorted.length;i++)sorted[i].labelY=Math.max(sorted[i].labelY,sorted[i-1].labelY+16);
+ const overflow=Math.max(0,sorted.at(-1).labelY-218);if(overflow>0)sorted.forEach(x=>x.labelY-=overflow);
+ if(sorted[0].labelY<15){const delta=15-sorted[0].labelY;sorted.forEach(x=>x.labelY+=delta);}
+ sorted.forEach(p=>{
+   svgAdd(svg,'line',{x1:338,y1:p.actualY,x2:346,y2:p.labelY,stroke:p.color,'stroke-width':0.85,'stroke-opacity':0.65});
+   svgAdd(svg,'text',{x:350,y:p.labelY+3.8,fill:p.color,'font-size':10.2,'font-weight':p.key==='poc'?800:600},p.name);
+   svgAdd(svg,'text',{x:350,y:p.labelY+14,fill:p.color,'font-size':10.2},s.currency==='KRW'?`${fmt(p.price,0)}원`:`$${fmt(p.price,2)}`);
+ });
+ svgAdd(svg,'text',{x:12,y:232,fill:'#91abc0','font-size':10},`최근 ${closes.length}거래일 · 종가`);
+ svgAdd(svg,'text',{x:294,y:232,fill:'#91abc0','font-size':9.5},'매물 분포 →');
+ if(levels.length!==3){interpretation.textContent='매물대는 다음 일봉 스캔이 완료된 후 표시됩니다. 최신 데이터가 없어 가격을 임의로 만들지 않습니다.';return;}
+ labels.forEach(info=>{
+   const level=Number(vp[info.key]);const relative=(level/price-1)*100;
+   const box=document.createElement('div');box.className='profile-item';
+   const name=document.createElement('span');name.textContent=info.name;
+   const val=document.createElement('strong');val.style.color=info.color;val.textContent=currency(level,s.currency);
+   const distance=document.createElement('em');distance.textContent=`현재가 대비 ${pct(relative)}`;
+   box.append(name,val,distance);panel.appendChild(box);
+ });
+ const closestBelow=levels.filter(x=>x.price<=price&&x.price!==null).sort((a,b)=>b.price-a.price)[0];
+ const closestAbove=levels.filter(x=>x.price>price&&x.price!==null).sort((a,b)=>a.price-b.price)[0];
+ const nearText=closestBelow?`현재가 아래에서 가장 가까운 참고 구간은 ${closestBelow.name} ${currency(closestBelow.price,s.currency)} (${pct((closestBelow.price/price-1)*100)})입니다.`:'현재가 아래에 표시할 120일 핵심 매물대가 없습니다.';
+ const upperText=closestAbove?` 위쪽에는 ${closestAbove.name} ${currency(closestAbove.price,s.currency)}가 있습니다.`:'';
+ interpretation.textContent=nearText+upperText+' 아래 매물대가 반드시 지지선이 되는 것은 아닙니다. 실제 매수는 RSI·MACD·일목 신호 확인 후 판단하세요.';
+}
+function renderMacdSummary(s){
+ const area=el('macdSummary'),value=el('detailMacd'),badge=el('macdCrossBadge');
+ const m=s.macd!=null?Number(s.macd):NaN,k=s.macd_signal!=null?Number(s.macd_signal):NaN;
+ const mc=s.macd_chart,series=mc?.histogram||[];
+ const h=series.length?Number(series.at(-1)):(Number.isFinite(m)&&Number.isFinite(k)?m-k:NaN);
+ const prev=series.length>1?Number(series.at(-2)):NaN;
+ if(!Number.isFinite(m)||!Number.isFinite(k)){
+   area.textContent='MACD 최신 데이터가 없습니다.';area.className='momentum-summary neutral';value.textContent='데이터 없음';badge.textContent='확인 대기';return;
+ }
+ const up=m>k,down=m<k;
+ const phase=h>0?(h>(Number.isFinite(prev)?prev:h)?'상승 힘 확대':'상승 힘 둔화'):(h<0?(h>(Number.isFinite(prev)?prev:h)?'하락 압력 감소':'하락 압력 확대'):'중립');
+ const direction=up?'상승 모멘텀 우위':down?'하락 모멘텀 우위':'모멘텀 중립';
+ const zeroContext=(m<0&&k<0)?' · 두 선 모두 0 아래':(m>0&&k>0)?' · 두 선 모두 0 위':'';
+ area.textContent=`${up?'↗':down?'↘':'→'} ${direction} · ${phase}${zeroContext}`;
+ area.className=`momentum-summary ${up?'up':down?'down':'neutral'}`;
+ value.textContent=direction;
+ const buy=Boolean(s.signals?.buy2),sell=Boolean(s.signals?.sell2);
+ badge.textContent=buy?'오늘 골든크로스':sell?'오늘 데드크로스':up?'MACD > 시그널':down?'MACD < 시그널':'두 선 비슷';
+ badge.style.borderColor=buy?'#59d5ad':sell?'#ff95a3':'#365269';
+ el('macdGuide').textContent=`파랑 MACD ${fmt(m,3)} / 노랑 시그널 ${fmt(k,3)} / 차이 ${fmt(h,3)}. `+
+ (buy?'오늘 두 선이 아래→위로 교차했습니다. 단, 2차 매수는 1차 RSI 보유와 20일 이내 조건도 필요합니다.':
+ sell?'오늘 두 선이 위→아래로 교차했습니다. 보유한 2차 물량의 매도 신호입니다.':
+ '파란선이 노란선보다 위면 상승 모멘텀이 상대적으로 강하고, 아래면 하락 모멘텀이 상대적으로 강합니다. 현재 위치만으로 신규 매수 신호가 확정되는 것은 아닙니다.');
+}
+function drawMacdChart(s){
+ const svg=el('macdChart');svg.replaceChildren();
+ const m=s.macd_chart;
+ if(!m||!Array.isArray(m.macd)||!Array.isArray(m.signal)||!Array.isArray(m.histogram)||m.macd.length<2){
+   svgAdd(svg,'text',{x:16,y:85,fill:'#b3c9d9','font-size':13},'다음 일봉 갱신 이후 MACD 차트가 표시됩니다.');return;
+ }
+ const n=Math.min(m.macd.length,m.signal.length,m.histogram.length),mac=m.macd.slice(-n).map(Number),signal=m.signal.slice(-n).map(Number),hist=m.histogram.slice(-n).map(Number);
+ if([mac,signal,hist].some(arr=>arr.some(v=>!Number.isFinite(v))))return;
+ const values=[...mac,...signal,...hist,0],lo=Math.min(...values),hi=Math.max(...values);
+ const padding=Math.max((hi-lo)*0.18,Math.abs(hi)*0.08,0.0001),lower=lo-padding,upper=hi+padding;
+ const y=v=>148-(v-lower)/(upper-lower)*127,x=i=>12+(i/Math.max(1,n-1))*416,zero=y(0);
+ for(let i=0;i<4;i++){const yy=14+i*43;svgAdd(svg,'line',{x1:12,y1:yy,x2:429,y2:yy,stroke:'#26394d','stroke-width':0.8});}
+ svgAdd(svg,'line',{x1:12,y1:zero,x2:429,y2:zero,stroke:'#8ba5bc','stroke-width':1,'stroke-dasharray':'4 5','stroke-opacity':0.7});
+ const width=Math.min(8,375/n*0.65);
+ hist.forEach((v,i)=>{
+  const yy=y(v);
+  svgAdd(svg,'rect',{x:x(i)-width/2,y:Math.min(yy,zero),width:width,height:Math.max(0.9,Math.abs(zero-yy)),
+    fill:v>=0?'#56daa5':'#f58da5','fill-opacity':'0.54'});
+ });
+ for(const [values,color] of [[mac,'#54baff'],[signal,'#ffce66']]){
+   const points=values.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+   svgAdd(svg,'polyline',{points,fill:'none',stroke:color,'stroke-width':2.3,'stroke-linecap':'round','stroke-linejoin':'round'});
+ }
+ svgAdd(svg,'circle',{cx:x(n-1),cy:y(mac.at(-1)),r:3.7,fill:'#54baff'});
+ svgAdd(svg,'circle',{cx:x(n-1),cy:y(signal.at(-1)),r:3.7,fill:'#ffce66'});
+ svgAdd(svg,'text',{x:13,y:169,fill:'#89a8bf','font-size':10},`최근 ${n}거래일 · 종가 확정`);
+}
+
 function stagesForm(){return [1,2,3].filter(n=>el('lot'+n).checked)}
 function updateHolding(evt){evt.preventDefault();if(!selected)return;const key=selected.symbol,h=holdings[key]||null,stages=stagesForm();
  if(!stages.length){notice('보유 물량에 해당하는 1·2·3차 단계를 하나 이상 선택해 주세요.');return;}

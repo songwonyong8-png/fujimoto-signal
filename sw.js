@@ -1,4 +1,4 @@
-const CACHE='fujimoto-v10-portfolio-20261026';
+const CACHE='fujimoto-v11-levels-macd-20261026';
 const SHELL=['./','./index.html','./app.js','./manifest.webmanifest','./icon.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(Promise.all([

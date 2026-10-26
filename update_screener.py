@@ -57,6 +57,66 @@ DISPLAY = {
     'RKLB':'로켓랩','SHOP':'쇼피파이','PDD':'핀둬둬','WMT':'월마트'
 }
 
+# Korean names for every security that lacked a display name in the frozen KOSPI 100 snapshot.
+DISPLAY.update({
+    '402340.KS':'SK스퀘어',
+    '329180.KS':'HD현대중공업',
+    '028260.KS':'삼성물산',
+    '267260.KS':'HD현대일렉트릭',
+    '298040.KS':'효성중공업',
+    '010130.KS':'고려아연',
+    '011200.KS':'HMM',
+    '138040.KS':'메리츠금융지주',
+    '042700.KS':'한미반도체',
+    '010140.KS':'삼성중공업',
+    '017670.KS':'SK텔레콤',
+    '079550.KS':'LIG넥스원',
+    '064350.KS':'현대로템',
+    '006800.KS':'미래에셋증권',
+    '267250.KS':'HD현대',
+    '010950.KS':'S-Oil',
+    '086280.KS':'현대글로비스',
+    '047810.KS':'한국항공우주',
+    '278470.KS':'에이피알',
+    '272210.KS':'한화시스템',
+    '011070.KS':'LG이노텍',
+    '030200.KS':'KT',
+    '000720.KS':'현대건설',
+    '307950.KS':'현대오토에버',
+    '071050.KS':'한국금융지주',
+    '0126Z0.KS':'삼성에피스홀딩스',
+    '003230.KS':'삼양식품',
+    '443060.KS':'HD현대마린솔루션',
+    '078930.KS':'GS',
+    '006260.KS':'LS',
+    '161390.KS':'한국타이어앤테크놀로지',
+    '090430.KS':'아모레퍼시픽',
+    '016360.KS':'삼성증권',
+    '180640.KS':'한진칼',
+    '352820.KS':'하이브',
+    '064400.KS':'LG씨엔에스',
+    '326030.KS':'SK바이오팜',
+    '047040.KS':'대우건설',
+    '267270.KS':'HD건설기계',
+    '007660.KS':'이수페타시스',
+    '021240.KS':'코웨이',
+    '032640.KS':'LG유플러스',
+    '241560.KS':'두산밥캣',
+    '377300.KS':'카카오페이',
+    '009830.KS':'한화솔루션',
+    '001440.KS':'대한전선',
+    '062040.KS':'산일전기',
+    '000880.KS':'한화',
+    '271560.KS':'오리온',
+    '353200.KS':'대덕전자',
+    '175330.KS':'JB금융지주',
+    '128940.KS':'한미약품',
+    '010060.KS':'OCI홀딩스',
+    '029780.KS':'삼성카드',
+    '034220.KS':'LG디스플레이',
+    '051900.KS':'LG생활건강',
+})
+
 
 def read_universe(path: Path = UNIVERSE) -> list[dict]:
     with Path(path).open(encoding='utf-8-sig',newline='') as fp:
@@ -83,6 +143,59 @@ def read_universe(path: Path = UNIVERSE) -> list[dict]:
                       'name':'DRAM ETF','currency':'USD'})
     return output
 
+
+
+def volume_profile(prices: pd.DataFrame, lookback: int = 120, bins: int = 32) -> dict:
+    """Approximate fixed-range 120-bar volume-by-price, not true intraday footprint.
+
+    Each completed day's FULL volume is assigned to that day's HLC3 typical
+    price bin. POC is the densest bin. The 70% value area expands contiguously
+    from POC toward the adjacent bin holding more volume, with no future bars.
+    """
+    if len(prices) < lookback:
+        raise ValueError(f'Volume profile needs {lookback} completed candles')
+    recent = prices.iloc[-lookback:]
+    typical = ((recent.high + recent.low + recent.close) / 3).to_numpy(float)
+    volumes = recent.volume.to_numpy(float)
+    if not (np.isfinite(typical).all() and np.isfinite(volumes).all()):
+        raise ValueError('Invalid volume profile input')
+    if np.any(volumes < 0):
+        raise ValueError('Negative volume is invalid')
+    total = float(volumes.sum())
+    if total <= 0:
+        raise ValueError('Volume profile needs positive volume')
+    low = float(typical.min()); high = float(typical.max())
+    if high - low <= 1e-12:
+        # Flat price series are valid; one bin rather than zero width.
+        return {'period_bars':lookback,'bins':bins,'method':'daily_HLC3_full_volume',
+                'poc':round(low,4),'val':round(low,4),'vah':round(high,4),
+                'coverage_target':0.70,'actual_coverage':1.0,
+                'histogram':[1.0]+[0.0]*(bins-1),'range_low':round(low,4),
+                'range_high':round(high,4),'width':0.0}
+    edges = np.linspace(low, high, bins + 1)
+    idx = np.clip(np.searchsorted(edges, typical, side='right') - 1, 0, bins - 1)
+    weights = np.bincount(idx, weights=volumes, minlength=bins).astype(float)
+    poc_idx = int(np.argmax(weights))
+    left = right = poc_idx
+    included = float(weights[poc_idx])
+    while included / total < 0.70 and (left > 0 or right < bins - 1):
+        left_weight = float(weights[left-1]) if left > 0 else -1.0
+        right_weight = float(weights[right+1]) if right < bins - 1 else -1.0
+        if left_weight >= right_weight and left > 0:
+            left -= 1; included += float(weights[left])
+        elif right < bins - 1:
+            right += 1; included += float(weights[right])
+        else:
+            break
+    width = float(edges[1] - edges[0])
+    poc = (float(edges[poc_idx]) + float(edges[poc_idx+1])) / 2
+    return {'period_bars':lookback,'bins':bins,'method':'daily_HLC3_full_volume',
+            'poc':round(poc,4), 'val':round(float(edges[left]),4),
+            'vah':round(float(edges[right+1]),4),
+            'coverage_target':0.70,'actual_coverage':round(included/total,4),
+            'histogram':[round(float(x / max(weights)),5) for x in weights],
+            'range_low':round(low,4),'range_high':round(high,4),
+            'width':round(width,6)}
 
 def safe_number(v, digits=5):
     try:
@@ -136,6 +249,11 @@ def indicator_snapshot(prices:pd.DataFrame, meta:dict) -> dict:
         'rsi14':safe_number(s.get('rsi'),2),
         'macd':safe_number(line.iloc[-1]),
         'macd_signal':safe_number(signal.iloc[-1]),
+        'macd_chart': {
+            'macd':[safe_number(x,5) for x in line.tail(40)],
+            'signal':[safe_number(x,5) for x in signal.tail(40)],
+            'histogram':[safe_number(x,5) for x in (line-signal).tail(40)]},
+        'volume_profile':volume_profile(prices),
         'cloud_top':safe_number(s.get('cloud_top'),4),
         'cloud_bottom':safe_number(bottom,4),
         'signals':{
@@ -147,7 +265,7 @@ def indicator_snapshot(prices:pd.DataFrame, meta:dict) -> dict:
             'sell3':bool(np.isfinite(c) and bottom is not None and
                          pd.notna(bottom) and c<float(bottom)),
         },
-        'recent_closes':[safe_number(x,3) for x in close.tail(50)],
+        'recent_closes':[safe_number(x,3) for x in close.tail(120)],
         'bars':len(prices)}
     return result
 
@@ -156,7 +274,7 @@ def empty_record(meta:dict,reason='조회 전') -> dict:
     return {**meta,'status':'UNAVAILABLE','asof':None,'close':None,
             'previous_close':None,'change_pct':None,'rsi14':None,
             'macd':None,'macd_signal':None,'cloud_top':None,
-            'cloud_bottom':None,
+            'cloud_bottom':None,'volume_profile':None, 'macd_chart':None,
             'signals':{'buy1':False,'buy2':False,'buy3':False,
                        'sell1':False,'sell2':False,'sell3':False},
             'recent_closes':[], 'bars':0,'error':str(reason)[:180]}
@@ -228,9 +346,9 @@ def update_all(fetcher:Callable=download_batch, universe_path=UNIVERSE,
             out.append(item)
         print(f'F9-A screener scanned {len(out)}/{len(stocks)}; valid={fresh}',flush=True)
     now=datetime.now(timezone.utc).isoformat()
-    payload={'version':'F9-A-PORTFOLIO-1','updated_at':now,
+    payload={'version':'F9-A-PORTFOLIO-2','updated_at':now,
              'universe_snapshot':'2026-10-25 (fixed F9 100+100 universe)',
-             'data_source':'Yahoo Finance via yfinance (unadjusted historical OHLCV)',
+             'data_source':'Yahoo Finance/yfinance; unadjusted OHLCV; daily HLC3 estimated volume profile',
              'signal_definitions':'F9 RSI(14), MACD(12/26/9), strict Ichimoku; A exits',
              'total':len(out),'core_universe':200,'extras':['DRAM'],'fresh_count':fresh,'failed_count':len(errors),
              'stocks':out,'errors':errors}
