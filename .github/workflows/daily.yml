@@ -2,6 +2,9 @@ name: Daily F9-A 200-stock iPhone Screener
 
 on:
   schedule:
+    # Korea: Mon-Fri 16:30 KST, after KRX 15:30 close + 60 min
+    - cron: '30 7 * * 1-5'
+    # US: Tue-Sat 08:30 KST; after 16:00 ET close even in US winter time
     - cron: '30 23 * * 1-5'
   workflow_dispatch:
 
@@ -37,6 +40,20 @@ jobs:
 
       - name: Keep four detailed OHLCV panels current
         run: python update_data.py
+
+      - name: Show market-specific data freshness
+        run: |
+          python - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+          d=json.loads(Path('data/screener_f9a.json').read_text(encoding='utf-8'))
+          print('Snapshot UTC time:',d.get('updated_at'))
+          for market in ('KOSPI','NASDAQ100','ETF'):
+              rows=[x for x in d['stocks'] if x['market']==market]
+              dates=Counter((x.get('asof') or 'UNAVAILABLE') for x in rows)
+              print(f'{market}: {len(rows)} symbols, close-date counts={dict(dates)}')
+          PY
 
       - name: Commit public market data only (never personal holdings)
         run: |
