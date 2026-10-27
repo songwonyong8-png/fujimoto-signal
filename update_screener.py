@@ -231,6 +231,48 @@ def completed_daily_bars(prices:pd.DataFrame, market:str,
         return prices.iloc[:-1]
     return prices
 
+def rsi_rebound_evidence(prices: pd.DataFrame, sig: pd.DataFrame, days: int = 14) -> dict:
+    """Exactly explain F3/F9 stage1: prior FIVE completed RSI candles <=30,
+    today's RSI in [30,48] and today's close > yesterday's close.
+
+    Never use the current RSI to establish prior oversold status.
+    Uses the SAME sig.rsi sequence already computed for the actual signal.
+    """
+    if len(prices) < 7 or len(sig) != len(prices):
+        raise ValueError('RSI evidence needs aligned history')
+    r = sig['rsi'].astype(float)
+    prior_five = r.iloc[-6:-1]
+    valid = prior_five[prior_five.notna()]
+    oversold = valid[valid <= 30]
+    minimum = valid.idxmin() if len(valid) else None
+    low_row = oversold.idxmin() if len(oversold) else None
+    now = float(r.iloc[-1]); previous = float(r.iloc[-2])
+    today_close = float(prices.close.iloc[-1]); yesterday_close = float(prices.close.iloc[-2])
+    low_found = low_row is not None
+    in_range = bool(np.isfinite(now) and 30 <= now <= 48)
+    close_up = bool(today_close > yesterday_close)
+    history = [{'date': dt.date().isoformat(), 'rsi': safe_number(val, 2)}
+               for dt,val in r.iloc[-days:].items()]
+    checks = {'oversold_in_prior_5': low_found, 'current_rsi_30_to_48': in_range,
+              'close_higher_than_yesterday': close_up}
+    return {
+        'window_bars': 5,
+        'prior_five_min_rsi': safe_number(valid.min(), 2) if len(valid) else None,
+        'prior_five_min_date': minimum.date().isoformat() if minimum is not None else None,
+        'oversold_rsi': safe_number(oversold.loc[low_row], 2) if low_found else None,
+        'oversold_date': low_row.date().isoformat() if low_found else None,
+        'yesterday_rsi': safe_number(previous, 2),
+        'today_rsi': safe_number(now, 2),
+        'rsi_change': safe_number(now - previous, 2),
+        'yesterday_close': safe_number(yesterday_close, 4),
+        'today_close': safe_number(today_close, 4),
+        'close_change_pct': safe_number((today_close/yesterday_close-1)*100, 2),
+        'checks': checks,
+        'eligible_today': all(checks.values()),
+        'history': history,
+    }
+
+
 def indicator_snapshot(prices:pd.DataFrame, meta:dict) -> dict:
     """One public signal record based exclusively on the last completed bar."""
     if len(prices)<MIN_BARS:
@@ -247,6 +289,7 @@ def indicator_snapshot(prices:pd.DataFrame, meta:dict) -> dict:
         'close':safe_number(c,4),'previous_close':safe_number(p,4),
         'change_pct':safe_number((c/p-1)*100,3) if p>0 else None,
         'rsi14':safe_number(s.get('rsi'),2),
+        'rsi_rebound':rsi_rebound_evidence(prices,sig),
         'macd':safe_number(line.iloc[-1]),
         'macd_signal':safe_number(signal.iloc[-1]),
         'macd_chart': {
@@ -274,7 +317,7 @@ def empty_record(meta:dict,reason='조회 전') -> dict:
     return {**meta,'status':'UNAVAILABLE','asof':None,'close':None,
             'previous_close':None,'change_pct':None,'rsi14':None,
             'macd':None,'macd_signal':None,'cloud_top':None,
-            'cloud_bottom':None,'volume_profile':None, 'macd_chart':None,
+            'cloud_bottom':None,'volume_profile':None, 'macd_chart':None, 'rsi_rebound':None,
             'signals':{'buy1':False,'buy2':False,'buy3':False,
                        'sell1':False,'sell2':False,'sell3':False},
             'recent_closes':[], 'bars':0,'error':str(reason)[:180]}

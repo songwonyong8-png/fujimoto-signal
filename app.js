@@ -83,6 +83,7 @@ function showDetail(symbol){selected=universe.find(s=>s.symbol===symbol);if(!sel
  }
  out.push('<div class="hint">종가 확정 이후 판단. 신호가 발생해도 아직 주문 또는 체결된 것은 아닙니다.</div>');rules.innerHTML=out.join('');
  el('detailRsi').textContent=fmt(s.rsi14,1);
+ renderRsiEvidence(s);
  renderMacdSummary(s);
  el('detailCloudTop').textContent=currency(s.cloud_top,s.currency);el('detailCloudBottom').textContent=currency(s.cloud_bottom,s.currency);
  drawChart(s,h);
@@ -105,65 +106,139 @@ function drawChart(s,holding){
  const vp=s.volume_profile;
  if(closes.length<2){interpretation.textContent='표시할 종가 데이터가 없습니다.';return;}
  const labels=[{key:'vah',name:'VAH 상단',color:'#ff95a3'},
-               {key:'poc',name:'POC 최다',color:'#facc72'},
+               {key:'poc',name:'POC 집중',color:'#facc72'},
                {key:'val',name:'VAL 하단',color:'#68dfa4'}];
  const levels=vp?labels.map(x=>({...x,price:safeLevel(vp[x.key])})).filter(x=>x.price!==null):[];
  const price=safeLevel(s.close)||closes.at(-1);
  const extra=holding?safeLevel(holding.avg):null;
- const all=[...closes,price,...levels.map(x=>x.price),...(extra!==null?[extra]:[])];
+ const annotations=[...levels,{key:'close',name:'현재가',price,color:'#eef8ff'}];
+ if(extra!==null)annotations.push({key:'avg',name:'내 평단',price:extra,color:'#7df0d5'});
+ const all=[...closes,...annotations.map(x=>x.price)];
  const rawMin=Math.min(...all),rawMax=Math.max(...all);
- const padding=Math.max((rawMax-rawMin)*0.09,rawMax*0.006,0.0001);
- const min=rawMin-padding,max=rawMax+padding,scale=v=>205-(v-min)/(max-min)*183;
+ const padding=Math.max((rawMax-rawMin)*0.11,rawMax*0.008,0.0001);
+ const min=rawMin-padding,max=rawMax+padding;
+ const plot={left:10,right:266,top:27,bottom:326};
+ const scale=v=>plot.bottom-(v-min)/(max-min)*(plot.bottom-plot.top);
  const n=closes.length;
- const xOf=i=>12+i/Math.max(n-1,1)*277;
- // Actual 70% value-area region behind price movement.
+ const xOf=i=>plot.left+i/Math.max(n-1,1)*(plot.right-plot.left);
+ svgAdd(svg,'rect',{x:4,y:15,width:268,height:322,fill:'#112337','fill-opacity':0.6,rx:6});
+ // Price plot and independent label column never overlap.
+ svgAdd(svg,'rect',{x:287,y:15,width:148,height:322,fill:'#172c40','fill-opacity':0.75,rx:7});
+ svgAdd(svg,'line',{x1:281,y1:15,x2:281,y2:339,stroke:'#40516a','stroke-width':1});
+ svgAdd(svg,'text',{x:13,y:14,fill:'#9ab2c7','font-size':11},'주가 · 최근 120일');
+ svgAdd(svg,'text',{x:298,y:14,fill:'#aebed2','font-size':11},'가격선 · 겹침 방지');
  if(vp&&safeLevel(vp.val)!==null&&safeLevel(vp.vah)!==null){
    const top=scale(Number(vp.vah)),bottom=scale(Number(vp.val));
-   svgAdd(svg,'rect',{x:9,y:Math.min(top,bottom),width:327,height:Math.max(1,Math.abs(bottom-top)),fill:'#facc72','fill-opacity':'0.055'});
+   svgAdd(svg,'rect',{x:8,y:Math.min(top,bottom),width:259,height:Math.max(1,Math.abs(bottom-top)),fill:'#facc72','fill-opacity':'0.075'});
  }
- for(let i=0;i<4;i++){const y=26+i*56;svgAdd(svg,'line',{x1:10,y1:y,x2:337,y2:y,stroke:'#23364a','stroke-width':1});}
- // Volume histogram on the same price axis. Width = relative concentration.
+ for(let i=0;i<5;i++){const y=31+i*70;svgAdd(svg,'line',{x1:8,y1:y,x2:266,y2:y,stroke:'#26384c','stroke-width':1});}
  if(vp&&Array.isArray(vp.histogram)&&vp.histogram.length===32){
-   const start=Number(vp.range_low),end=Number(vp.range_high);
-   vp.histogram.forEach((weight,i)=>{if(!Number.isFinite(Number(weight))||Number(weight)<=0)return;
-     const level=start+(end-start)*(i+0.5)/32;
-     const yy=scale(level);const width=32*Math.max(0,Math.min(1,Number(weight)));
-     svgAdd(svg,'rect',{x:336-width,y:yy-1.65,width:width.toFixed(2),height:3.3,
-       fill:Math.abs(level-Number(vp.poc))<=Math.max(Number(vp.width)/2,1e-9)?'#facc72':'#7e9bae','fill-opacity':'0.60'});
-   });
+   const from=Number(vp.range_low),to=Number(vp.range_high);
+   if(Number.isFinite(from)&&Number.isFinite(to)&&to>from){
+     vp.histogram.forEach((weight,i)=>{const w=Number(weight);if(!Number.isFinite(w)||w<=0)return;
+       const level=from+(to-from)*(i+0.5)/32,yy=scale(level),width=31*Math.min(1,Math.max(0,w));
+       svgAdd(svg,'rect',{x:266-width,y:yy-1.9,width:width.toFixed(2),height:3.8,
+         fill:Math.abs(level-Number(vp.poc))<=Math.max(Number(vp.width)/2,1e-9)?'#facc72':'#7e9bae','fill-opacity':'0.56'});
+     });
+   }
  }
  const points=closes.map((v,i)=>`${xOf(i).toFixed(1)},${scale(v).toFixed(1)}`).join(' ');
  svgAdd(svg,'polyline',{points,stroke:'#66bffd','stroke-width':2.5,fill:'none','stroke-linecap':'round','stroke-linejoin':'round'});
- const annotations=[...levels,{key:'close',name:'현재',price,color:'#eef8ff'}];
- if(extra!==null)annotations.push({key:'avg',name:'평단',price:extra,color:'#7df0d5'});
- annotations.forEach(p=>svgAdd(svg,'line',{x1:10,y1:scale(p.price),x2:337,y2:scale(p.price),stroke:p.color,'stroke-width':p.key==='poc'?2:1.2,'stroke-dasharray':p.key==='close'?'3 4':'6 5','stroke-opacity':p.key==='close'?'0.9':'0.8'}));
- // Avoid text collisions: put floating price labels in separate right gutter.
- const sorted=annotations.map(p=>({...p,actualY:scale(p.price),labelY:scale(p.price)})).sort((a,b)=>a.actualY-b.actualY);
- for(let i=1;i<sorted.length;i++)sorted[i].labelY=Math.max(sorted[i].labelY,sorted[i-1].labelY+16);
- const overflow=Math.max(0,sorted.at(-1).labelY-218);if(overflow>0)sorted.forEach(x=>x.labelY-=overflow);
- if(sorted[0].labelY<15){const delta=15-sorted[0].labelY;sorted.forEach(x=>x.labelY+=delta);}
- sorted.forEach(p=>{
-   svgAdd(svg,'line',{x1:338,y1:p.actualY,x2:346,y2:p.labelY,stroke:p.color,'stroke-width':0.85,'stroke-opacity':0.65});
-   svgAdd(svg,'text',{x:350,y:p.labelY+3.8,fill:p.color,'font-size':10.2,'font-weight':p.key==='poc'?800:600},p.name);
-   svgAdd(svg,'text',{x:350,y:p.labelY+14,fill:p.color,'font-size':10.2},s.currency==='KRW'?`${fmt(p.price,0)}원`:`$${fmt(p.price,2)}`);
+ // Deterministic independent label slots. Even if prices converge, labels CANNOT collide.
+ const sorted=annotations.map(a=>({...a,actualY:scale(a.price)})).sort((a,b)=>a.actualY-b.actualY);
+ const count=sorted.length;
+ sorted.forEach((a,i)=>{
+   const slotY=38+i*(count>1?278/(count-1):0);
+   svgAdd(svg,'line',{x1:9,y1:a.actualY,x2:266,y2:a.actualY,stroke:a.color,'stroke-width':a.key==='poc'?2:1.2,
+     'stroke-dasharray':a.key==='close'?'3 4':'6 5','stroke-opacity':a.key==='close'?0.98:0.82});
+   svgAdd(svg,'circle',{cx:266,cy:a.actualY,r:2.6,fill:a.color});
+   svgAdd(svg,'polyline',{points:`267,${a.actualY.toFixed(1)} 279,${a.actualY.toFixed(1)} 294,${slotY.toFixed(1)}`,
+     fill:'none',stroke:a.color,'stroke-width':1.15,'stroke-opacity':0.8});
+   svgAdd(svg,'text',{x:301,y:slotY-3,fill:a.color,'font-size':12,'font-weight':800},a.name);
+   svgAdd(svg,'text',{x:301,y:slotY+14,fill:'#e9f5ff','font-size':12,'font-weight':650},
+     s.currency==='KRW'?`${fmt(a.price,0)}원`:`$${fmt(a.price,2)}`);
  });
- svgAdd(svg,'text',{x:12,y:232,fill:'#91abc0','font-size':10},`최근 ${closes.length}거래일 · 종가`);
- svgAdd(svg,'text',{x:294,y:232,fill:'#91abc0','font-size':9.5},'매물 분포 →');
- if(levels.length!==3){interpretation.textContent='매물대는 다음 일봉 스캔이 완료된 후 표시됩니다. 최신 데이터가 없어 가격을 임의로 만들지 않습니다.';return;}
+ svgAdd(svg,'text',{x:11,y:356,fill:'#a9c0d6','font-size':10.5},`파랑: 종가  ·  색깔별 선: 매물대/평단`);
+ if(levels.length!==3){interpretation.textContent='매물대는 다음 일봉 스캔 완료 후 표시됩니다. 실제 가격을 임의로 만들지 않습니다.';return;}
  labels.forEach(info=>{
-   const level=Number(vp[info.key]);const relative=(level/price-1)*100;
+   const level=Number(vp[info.key]),relative=(level/price-1)*100;
    const box=document.createElement('div');box.className='profile-item';
    const name=document.createElement('span');name.textContent=info.name;
    const val=document.createElement('strong');val.style.color=info.color;val.textContent=currency(level,s.currency);
    const distance=document.createElement('em');distance.textContent=`현재가 대비 ${pct(relative)}`;
    box.append(name,val,distance);panel.appendChild(box);
  });
- const closestBelow=levels.filter(x=>x.price<=price&&x.price!==null).sort((a,b)=>b.price-a.price)[0];
- const closestAbove=levels.filter(x=>x.price>price&&x.price!==null).sort((a,b)=>a.price-b.price)[0];
+ const closestBelow=levels.filter(x=>x.price<=price).sort((a,b)=>b.price-a.price)[0];
+ const closestAbove=levels.filter(x=>x.price>price).sort((a,b)=>a.price-b.price)[0];
  const nearText=closestBelow?`현재가 아래에서 가장 가까운 참고 구간은 ${closestBelow.name} ${currency(closestBelow.price,s.currency)} (${pct((closestBelow.price/price-1)*100)})입니다.`:'현재가 아래에 표시할 120일 핵심 매물대가 없습니다.';
  const upperText=closestAbove?` 위쪽에는 ${closestAbove.name} ${currency(closestAbove.price,s.currency)}가 있습니다.`:'';
- interpretation.textContent=nearText+upperText+' 아래 매물대가 반드시 지지선이 되는 것은 아닙니다. 실제 매수는 RSI·MACD·일목 신호 확인 후 판단하세요.';
+ interpretation.textContent=nearText+upperText+' 매물대는 과거 거래량 기준의 추정치이며 매수 적정가나 확정 지지선은 아닙니다.';
 }
+
+// The RSI narrative MUST refer to the exact same F9 stage1 calculation as the signal flag.
+function renderRsiEvidence(s){
+ const box=el('rsiSummary'),steps=el('rsiChecks'),detail=el('rsiExplanation'),badge=el('rsiReboundBadge');
+ const svg=el('rsiChart');svg.replaceChildren();steps.replaceChildren();
+ const data=s.rsi_rebound,values=Array.isArray(data?.history)?data.history.filter(x=>x&&Number.isFinite(Number(x.rsi))&&x.rsi!==null):[];
+ if(!data||!data.checks||!values.length){
+   box.className='rsi-summary wait';box.textContent='RSI 최근 이력이 아직 없습니다.';
+   detail.textContent='새 update_screener.py를 등록한 후 GitHub Actions에서 일봉 갱신을 실행하면 날짜별 RSI와 반등 근거가 나타납니다.';
+   badge.textContent='데이터 갱신 필요';return;
+ }
+ const ok=Boolean(data.eligible_today)&&!stale(s);
+ box.className=`rsi-summary ${ok?'pass':'wait'}`;
+ const was=data.oversold_date?`${data.oversold_date} RSI ${fmt(data.oversold_rsi,1)}`:'최근 5일간 RSI 30 이하 없음';
+ box.textContent=ok?'● 1차 RSI 반등 조건 3개 모두 충족':'○ 1차 RSI 반등 조건 일부 미충족';
+ badge.textContent=ok?'1차 RSI 반등 확인':'조건 확인 중';
+ const conditions=[
+  {pass:data.checks.oversold_in_prior_5,desc:`직전 5거래일 과매도(≤30): ${was}`},
+  {pass:data.checks.current_rsi_30_to_48,desc:`현재 RSI가 30~48 범위: ${fmt(data.today_rsi,1)}`},
+  {pass:data.checks.close_higher_than_yesterday,desc:`종가가 전일보다 상승: ${currency(data.yesterday_close,s.currency)} → ${currency(data.today_close,s.currency)} (${pct(Number(data.close_change_pct))})`},
+ ];
+ conditions.forEach(c=>{const li=document.createElement('li');li.className=c.pass?'pass':'fail';
+   const ico=document.createElement('b');ico.textContent=c.pass?'✓':'×';const msg=document.createElement('span');msg.textContent=c.desc;
+   li.append(ico,msg);steps.appendChild(li);
+ });
+ const change=Number(data.rsi_change),prev=Number(data.yesterday_rsi),now=Number(data.today_rsi);
+ const deltaLabel=Number.isFinite(change)?`${change>=0?'+':''}${fmt(change,1)}p`: '—';
+ const caution=stale(s)?'현재 시세가 오래되어 매매 신호를 보류합니다.':Boolean(s.signals?.buy1)?'조건을 충족했더라도 실제 매수는 다음 거래일 시가에서 판단하며, 기존 보유·진입순서·단계별 중복매수 여부를 별도 확인합니다.':'현재는 1차 RSI 매수 조건을 충족하지 않았습니다.';
+ detail.textContent=`RSI 변화: 전일 ${fmt(prev,1)} → 오늘 ${fmt(now,1)} (${deltaLabel}). ${data.oversold_date?`과매도 날짜 ${data.oversold_date}에서 RSI ${fmt(data.oversold_rsi,1)}을 기록했습니다.`:'직전 5거래일 동안 RSI 30 이하 기록이 없습니다.'} ${caution}`;
+ drawRsiChart(svg,values,data);
+}
+function drawRsiChart(svg,values,data){
+ const width=440,left=40,right=423,top=21,bottom=158,x=i=>left+i/Math.max(1,values.length-1)*(right-left);
+ // Auto-zoom the RSI axis so a genuine 28→35 rebound is readable on mobile.
+ // Keep BOTH strategy thresholds, RSI 30 and RSI 48, in the visible range.
+ const measured=values.map(v=>Number(v.rsi));
+ const ymin=Math.max(0,Math.floor(Math.min(30,...measured)-7));
+ const ymax=Math.min(100,Math.ceil(Math.max(48,...measured)+7));
+ const y=v=>bottom-(v-ymin)/(ymax-ymin)*(bottom-top);
+ svgAdd(svg,'rect',{x:left,y:y(48),width:right-left,height:y(30)-y(48),fill:'#5ddba8','fill-opacity':0.10});
+ for(const level of [20,30,48,70].filter(level=>level>=ymin&&level<=ymax)){
+   const yy=y(level),highlight=level===30;
+   svgAdd(svg,'line',{x1:left,y1:yy,x2:right,y2:yy,stroke:highlight?'#efc776':'#345067',
+       'stroke-width':highlight?1.8:1,'stroke-dasharray':highlight?'5 3':'3 5'});
+   svgAdd(svg,'text',{x:8,y:yy+4,fill:highlight?'#f4d28b':'#abc1d3','font-size':12},level);
+ }
+ const path=values.map((v,i)=>`${x(i).toFixed(1)},${y(Number(v.rsi)).toFixed(1)}`).join(' ');
+ svgAdd(svg,'polyline',{points:path,fill:'none',stroke:'#77b7ff','stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'});
+ values.forEach((v,i)=>{
+   const oversoldDate=Boolean(data.oversold_date)&&v.date===data.oversold_date;
+   const current=i===values.length-1;
+   if(oversoldDate||current){const xx=x(i),yy=y(Number(v.rsi)),clr=current?'#69e4af':'#f0c777';
+     svgAdd(svg,'circle',{cx:xx,cy:yy,r:current?5:4.5,fill:clr,stroke:'#13263c','stroke-width':1});
+     if(current){
+       svgAdd(svg,'text',{x:417,y:Math.max(15,yy-10),fill:'#84f6ca','font-size':12,'font-weight':800,'text-anchor':'end'},
+         `오늘 ${fmt(Number(v.rsi),1)}`);
+     }
+   }
+ });
+ const first=values[0].date.slice(5),last=values.at(-1).date.slice(5);
+ svgAdd(svg,'text',{x:left,y:182,fill:'#acc4d8','font-size':12},first);
+ svgAdd(svg,'text',{x:right,y:182,fill:'#acc4d8','font-size':12,'text-anchor':'end'},last);
+ svgAdd(svg,'text',{x:width/2,y:182,fill:'#95e6c5','font-size':10.5,'text-anchor':'middle'},'초록 영역: RSI 30~48');
+}
+
 function renderMacdSummary(s){
  const area=el('macdSummary'),value=el('detailMacd'),badge=el('macdCrossBadge');
  const m=s.macd!=null?Number(s.macd):NaN,k=s.macd_signal!=null?Number(s.macd_signal):NaN;

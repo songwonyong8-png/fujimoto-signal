@@ -16,7 +16,7 @@
     .profile-section,.momentum-section{margin:18px 0 4px;padding:15px 12px;border:1px solid #32475c;border-radius:15px;background:linear-gradient(145deg,#14263a,#101e2d)}
     .visual-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:9px}.visual-head h3{margin:0;font-size:14px}
     .mini-chip{font-size:10px;border:1px solid #365269;border-radius:999px;color:#b7cee0;padding:5px 7px;white-space:nowrap}
-    .volume-chart{height:auto;aspect-ratio:440/240;margin-top:0;background:#0c1b2a;border:1px solid #253f54}
+    .volume-chart{height:auto;aspect-ratio:440/370;margin-top:0;background:#0c1b2a;border:1px solid #253f54}
     .macd-chart{height:auto;aspect-ratio:440/175;margin:9px 0 6px;background:#0c1b2a;border:1px solid #253f54}
     .profile-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}
     .profile-item{background:#192f42;padding:9px 7px;border-radius:10px;border:1px solid #2c475b;min-width:0}
@@ -28,7 +28,17 @@
     .momentum-value{font-size:14px!important;line-height:1.4}
     .macd-legend{display:flex;flex-wrap:wrap;gap:8px 13px;margin:6px 0 9px;font-size:11px;color:#b5c8d8}
     .key{display:inline-block;vertical-align:middle;width:12px;height:3px;margin-right:4px;border-radius:4px}.key.macd{background:#54baff}.key.signal{background:#ffce66}.key.hist{background:#52d9a1;height:10px;width:5px}
-    .volume-chart text,.macd-chart text{font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+    .rsi-section{margin:18px 0 10px;padding:15px 12px;border:1px solid #32475c;border-radius:15px;background:linear-gradient(145deg,#14263a,#101e2d)}
+    .rsi-chart{width:100%;height:auto;aspect-ratio:440/195;margin:12px 0 9px;background:#0c1b2a;border:1px solid #253f54;border-radius:10px}
+    .rsi-summary{font-size:13px;font-weight:800;line-height:1.55;padding:10px 12px;border-radius:10px;background:#213447;color:#e5f1ff}
+    .rsi-summary.pass{color:#8af2c2;border-left:3px solid #5ddba8}
+    .rsi-summary.wait{color:#f5d990;border-left:3px solid #e6ba68}
+    .rsi-steps{display:grid;grid-template-columns:1fr;gap:7px;margin:10px 0 0;padding:0;list-style:none}
+    .rsi-steps li{display:flex;align-items:start;gap:9px;font-size:12px;line-height:1.6;padding:10px 11px;border:1px solid #32485a;border-radius:10px;background:#182b3c}
+    .rsi-steps b{flex:none;min-width:18px;color:#a2b4c7}
+    .rsi-steps .pass b{color:#67e4b2}.rsi-steps .fail b{color:#efc87d}
+    .rsi-explain{font-size:12px;line-height:1.8;color:#c2d5e9;margin-top:9px}
+    .volume-chart text,.macd-chart text,.rsi-chart text{font-family:-apple-system,BlinkMacSystemFont,sans-serif}
     @media(min-width:680px){.stock{padding:17px}.list{display:grid;grid-template-columns:1fr 1fr}.toolbar{padding-bottom:15px}}
     @media(max-width:370px){.overview{gap:5px}.tile{padding:12px 7px}.tile b{font-size:21px}.tabs button{padding:9px 10px}.stock .name{font-size:14px}}
   </style>
@@ -75,12 +85,19 @@
     <div class="pairgrid"><div class="box"><small>최근 종가</small><b id="detailPrice">—</b></div><div class="box"><small>내 평가손익</small><b id="detailPnl">미보유</b></div></div>
     <section class="profile-section" aria-label="거래량 기반 매물대 분석">
       <div class="visual-head"><h3>최근 120거래일 가격 · 핵심 매물대</h3><span class="mini-chip">일봉 거래량 기준 추정</span></div>
-      <svg id="detailChart" class="chart volume-chart" viewBox="0 0 440 240" role="img" aria-label="120일 종가 흐름과 VAL, POC, VAH 매물대 및 현재가"></svg>
+      <svg id="detailChart" class="chart volume-chart" viewBox="0 0 440 370" role="img" aria-label="120일 종가 흐름과 VAL, POC, VAH 매물대 및 현재가"></svg>
       <div class="profile-legend" id="profileLevels" aria-live="polite"></div>
       <div class="profile-action" id="profileInterpretation">—</div>
       <p class="hint">* POC: 거래량이 가장 많이 모인 가격대 · VAL~VAH: 총 거래량 약 70%가 모인 구간. <strong>일봉의 하루 거래량을 대표가격(H+L+C)/3에 배분한 추정값</strong>으로 실제 체결량별 매물대나 주문 호가가 아닙니다.</p>
     </section>
     <h3>오늘의 F9-A 매매 판단</h3><div class="rules" id="detailRules">—</div>
+    <section class="rsi-section" aria-label="RSI 1차 반등 근거 및 최근 변화">
+      <div class="visual-head"><h3>RSI가 왜 1차 반등인가요?</h3><span id="rsiReboundBadge" class="mini-chip">확인 중</span></div>
+      <div id="rsiSummary" class="rsi-summary">RSI 이력을 확인하고 있습니다.</div>
+      <svg id="rsiChart" class="rsi-chart" viewBox="0 0 440 195" role="img" aria-label="최근 14거래일 RSI의 날짜별 변화와 30 과매도 기준선"></svg>
+      <ol class="rsi-steps" id="rsiChecks"></ol>
+      <div id="rsiExplanation" class="rsi-explain">—</div>
+    </section>
     <div class="pairgrid" style="margin-top:10px"><div class="box"><small>RSI (14)</small><b id="detailRsi">—</b></div><div class="box"><small>MACD 모멘텀</small><b id="detailMacd" class="momentum-value">—</b></div><div class="box"><small>구름대 상단</small><b id="detailCloudTop">—</b></div><div class="box"><small>구름대 하단</small><b id="detailCloudBottom">—</b></div></div>
     <section class="momentum-section" aria-label="MACD 시그널과 히스토그램 시각화">
       <div class="visual-head"><h3>MACD로 보는 상승·하락 힘</h3><span id="macdCrossBadge" class="mini-chip">—</span></div>
@@ -112,6 +129,6 @@
   <div class="dialogbody"><p class="hint">종목별 수량·평균단가·매수 단계를 이 아이폰의 로컬 저장소에 기록합니다. 휴대폰 교체나 Safari 데이터 삭제에 대비하여 백업 파일을 보관하세요. 서버·GitHub에는 보유정보가 저장되지 않습니다.</p><div class="buttons"><button class="primary" type="button" id="exportHoldings" style="flex:1">내 보유내역 파일로 백업</button></div><label class="field" style="margin-top:22px"><span>백업 파일 가져오기 (.json)</span><input type="file" id="importHoldings" accept=".json,application/json"></label><p class="hint">가져오기는 현재 기기의 기존 보유정보를 교체합니다. 가져오기 전에 먼저 백업해 두세요.</p><p id="backupInfo" class="hint" aria-live="polite"></p></div>
 </dialog>
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-<script src="app.js?v=portfolio-v11-levels-macd"></script>
+<script src="app.js?v=portfolio-v12-rsi-chart-spacing"></script>
 </body>
 </html>

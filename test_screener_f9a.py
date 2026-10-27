@@ -174,10 +174,81 @@ class F9ScreenerTests(TestCase):
         self.assertGreaterEqual(record['volume_profile']['actual_coverage'],.7)
         self.assertTrue(record['volume_profile']['val']<=record['volume_profile']['poc']<=record['volume_profile']['vah'])
 
+    def test_rsi_rebound_evidence_explains_real_three_part_rule(self):
+        p=self.prices(150)
+        sig=self.signals(p)
+        sig['rsi']=42.
+        sig.iloc[-4,sig.columns.get_loc('rsi')]=28.42
+        sig.iloc[-2,sig.columns.get_loc('rsi')]=31.40
+        sig.iloc[-1,sig.columns.get_loc('rsi')]=35.11
+        # Test one positive closing candle without retroactively changing indicators.
+        p.iloc[-2,p.columns.get_loc('close')]=99
+        p.iloc[-1,p.columns.get_loc('close')]=102
+        sig.iloc[-1,sig.columns.get_loc('stage1')]=True
+        with mock.patch.object(f.v6,'indicators',return_value=sig):
+            record=f.indicator_snapshot(p,self.meta())
+        ev=record['rsi_rebound']
+        self.assertTrue(ev['eligible_today'])
+        self.assertEqual(ev['oversold_date'],p.index[-4].date().isoformat())
+        self.assertEqual(ev['oversold_rsi'],28.42)
+        self.assertEqual(ev['yesterday_rsi'],31.4)
+        self.assertEqual(ev['today_rsi'],35.11)
+        self.assertEqual(ev['rsi_change'],3.71)
+        self.assertEqual(len(ev['history']),14)
+        self.assertEqual(record['signals']['buy1'],ev['eligible_today'])
+
+    def test_rsi_oversold_today_not_counted_as_prior_five(self):
+        p=self.prices(150); sig=self.signals(p)
+        sig['rsi']=40.
+        sig.iloc[-1,sig.columns.get_loc('rsi')]=28.
+        evidence=f.rsi_rebound_evidence(p,sig)
+        self.assertIsNone(evidence['oversold_date'])
+        self.assertFalse(evidence['checks']['oversold_in_prior_5'])
+        self.assertFalse(evidence['eligible_today'])
+
+    def test_rsi_oversold_six_days_ago_is_out_of_window(self):
+        p=self.prices(150); sig=self.signals(p)
+        sig['rsi']=36.
+        sig.iloc[-7,sig.columns.get_loc('rsi')]=24.
+        p.iloc[-1,p.columns.get_loc('close')]=103.
+        evidence=f.rsi_rebound_evidence(p,sig)
+        self.assertFalse(evidence['checks']['oversold_in_prior_5'])
+        self.assertFalse(evidence['eligible_today'])
+
+    def test_rsi_price_down_prevents_stage1_even_after_oversold(self):
+        p=self.prices(150); sig=self.signals(p)
+        sig['rsi']=35.
+        sig.iloc[-5,sig.columns.get_loc('rsi')]=27.
+        p.iloc[-1,p.columns.get_loc('close')]=100.
+        p.iloc[-2,p.columns.get_loc('close')]=102.
+        evidence=f.rsi_rebound_evidence(p,sig)
+        self.assertTrue(evidence['checks']['oversold_in_prior_5'])
+        self.assertTrue(evidence['checks']['current_rsi_30_to_48'])
+        self.assertFalse(evidence['checks']['close_higher_than_yesterday'])
+        self.assertFalse(evidence['eligible_today'])
+
+    def test_rsi_true_signal_matches_reference_indicators(self):
+        # No duplicate RSI formula. This is compared against original F9 code.
+        p=self.prices(180)
+        arr=p.close.to_numpy(copy=True)
+        arr[-55:-25]=np.linspace(110.,70.,30)
+        arr[-25:-7]=np.linspace(70.,85.,18)
+        arr[-7:-2]=np.linspace(85.,74.,5)
+        arr[-2:]=[72.,75.]
+        p['close']=arr
+        p['open']=arr
+        p['high']=arr+4
+        p['low']=arr-4
+        sig=f.v6.indicators(p)
+        ev=f.rsi_rebound_evidence(p,sig)
+        self.assertEqual(bool(sig.stage1.iloc[-1]),ev['eligible_today'])
+        self.assertEqual(ev['today_rsi'],f.safe_number(sig.rsi.iloc[-1],2))
+
     def test_missing_data_never_has_fictitious_support_price(self):
         result=f.empty_record(self.meta(),'No price history')
         self.assertIsNone(result['volume_profile'])
         self.assertIsNone(result['macd_chart'])
+        self.assertIsNone(result['rsi_rebound'])
 
     def test_cannot_publish_future_dummy_trade(self):
         x=f.empty_record(self.meta())
