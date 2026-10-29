@@ -1,29 +1,29 @@
 {
   "engine": "F9-A",
-  "updated_at": "2026-10-29T02:37:07.991010+00:00",
+  "updated_at": "2026-10-29T14:35:45.939665+00:00",
   "updated": [
     {
       "ticker": "DRAM",
-      "asof": "2026-10-28",
-      "rows": 145,
-      "state": "BUY_SIGNAL"
+      "asof": "2026-10-29",
+      "rows": 146,
+      "state": "HOLD_2"
     },
     {
       "ticker": "NVDA",
-      "asof": "2026-10-28",
-      "rows": 1715,
+      "asof": "2026-10-29",
+      "rows": 1716,
       "state": "WAIT_RSI"
     },
     {
       "ticker": "MU",
-      "asof": "2026-10-28",
-      "rows": 1715,
+      "asof": "2026-10-29",
+      "rows": 1716,
       "state": "HOLD_1"
     },
     {
       "ticker": "AMD",
-      "asof": "2026-10-28",
-      "rows": 1715,
+      "asof": "2026-10-29",
+      "rows": 1716,
       "state": "HOLD_1"
     }
   ],
