@@ -1,30 +1,30 @@
 {
   "engine": "F9-A",
-  "updated_at": "2026-11-06T03:31:17.313852+00:00",
+  "updated_at": "2026-11-06T15:17:43.976773+00:00",
   "updated": [
     {
       "ticker": "DRAM",
-      "asof": "2026-11-05",
-      "rows": 151,
-      "state": "SELL_SIGNAL"
-    },
-    {
-      "ticker": "NVDA",
-      "asof": "2026-11-05",
-      "rows": 1721,
+      "asof": "2026-11-06",
+      "rows": 152,
       "state": "WAIT_RSI"
     },
     {
+      "ticker": "NVDA",
+      "asof": "2026-11-06",
+      "rows": 1722,
+      "state": "BUY_SIGNAL"
+    },
+    {
       "ticker": "MU",
-      "asof": "2026-11-05",
-      "rows": 1721,
-      "state": "SELL_SIGNAL"
+      "asof": "2026-11-06",
+      "rows": 1722,
+      "state": "WAIT_RSI"
     },
     {
       "ticker": "AMD",
-      "asof": "2026-11-05",
-      "rows": 1721,
-      "state": "SELL_SIGNAL"
+      "asof": "2026-11-06",
+      "rows": 1722,
+      "state": "WAIT_RSI"
     }
   ],
   "failed": []
