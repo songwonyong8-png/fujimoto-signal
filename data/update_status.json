@@ -1,12 +1,12 @@
 {
   "engine": "F9-A",
-  "updated_at": "2026-11-13T15:36:50.744468+00:00",
+  "updated_at": "2026-11-14T03:26:45.594667+00:00",
   "updated": [
     {
       "ticker": "DRAM",
       "asof": "2026-11-13",
       "rows": 157,
-      "state": "HOLD_1"
+      "state": "BUY_SIGNAL"
     },
     {
       "ticker": "NVDA",
